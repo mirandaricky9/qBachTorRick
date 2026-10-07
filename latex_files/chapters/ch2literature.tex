@@ -1,8 +1,20 @@
-\section{Research Objective}
-The goal of this project is to analyze how bots have been detected in previous studies, implement some of those detection methods to the latest and largest dataset, Twibot-22, regarding X posts and accounts, and create our own bot in an attempt to avoid such detection methods to provide better insight as to how big of a problem bots really are.
+\section{Related Works}
+There are many works on P2P file sharing network. Closely related to BitTorrent is IPFS (cite IPFS paper 2022), an Inter-Planetary File System.
+Files are divided into blocks, which are hashed into CID (Content Identifiers). These CIDs form a Merkle DAG, creating a root CID.
+IPFS organize servers into Kademlia DHT, which is used to locate the root CID. After obtaining the servers responsible for a root CID, the requester can contact these servers to start downloading blocks.
+IPFS differs from BitTorrent by encoding metadata into CIDs, using MultiAddress for flexible communication, and dealing with mutable content by publishing content
+using the PeerID instead of the CID.
 
-% \section{Peer Review}
-It is important to note that creating a bot, analyzing the motivations behind creating bots, and following bot activity may involve ethical lapses such as the spread of misinformation. This can be due to many factors, such as deliberately spreading misinformation to push a narrative, known as disinformation. Another factor that is unavoidable, at least in terms of this project, is the risk that a GPT “hallucinates” and returns false information. A hallucination with respect to AI means that the information was presented as fact, even though the information is false. This was a very common occurrence in earlier GPT models, and although hallucinations have seen a significant downward trend since then, hallucinations can and still occur. Another ethical concern is regarding the use of social media apps and the privacy of its users’. Users interact on X on a daily basis and some of them have public accounts. It is important to maintain and respect the user's privacy, regardless if their accounts are public or not.
+Many works recognize Kademlia limitation in matching logical distance with physical distance.
+In (cite Cao et al. 2022), they propose a different node ID format based on IPv4 address so that the logical distance map closer to physical distance.
+They also propose to modify Kademlia default hop strategy to take into account of RTT to prevent extending the latencies per hop.
+They also modify to switch between iterative search and recursive search depending on the churn rate of the network.
 
-\section{Technical Approach}
-We will survey a variety of different methods that have been used for bot detection before, such as ML classifiers \cite{MLClassifiers}, LLM Bot Guard \cite{LLMBotGuard}, and \ac{NLP} techniques \cite{MisinfoCampaigns}. We'll organize each method based on what detected best and when the detection occurred. Afterwards, we will use the detection methods on the latest dataset, Twibot-22, which is a GitHub repository created by other researchers who are specializing in the field of bot detection \cite{Twibot-22}. Once that data is consolidated, we will create our own X bot using the developer options that X allows its users and create an account from there. We will investigate methods on how to automate via GPTs since they now pass the Turing test and can imitate human responses the best. Afterwards, we will revisit the different methods of bot detection and test them against our own bot to see if it circumvents detection and report our findings. 
+When a node holding a BitTorrent piece goes down, if no other peers in the swarm hold that piece, the download is incomplete.
+In (cite Wang, Kamimaya 2026), they propose using the servers with the first matching $y$-bits with the CID to permanently stores that data.
+They also propose an ID assignment to ensure servers responsible for the same CID are geographically dispersed.
+
+In Kademlia DHT, the key in the query reveals the interest of a node to a particular value.
+To conceal this information, (cite Daniel et al. 2025) evaluate a threat model where the adversary controls a small fraction of nodes, evenly split across the DHT ID space.
+They proposes three methods to obfuscate the key of the query: querying using the hash of the key, querying and deriving the value using private set intersections,
+and querying using the first $l$ bits of the key.
