@@ -19,6 +19,6 @@ They also argue that the default ID assignment may result in multiple servers re
 Therefore, they also propose an ID assignment to ensure servers responsible for the same CID are geographically dispersed.
 
 In Kademlia DHT, the key in the query reveals the interest of a node in a particular value.
-To conceal this information, \cite{KademliaQueryObfuscation} evaluate a threat model where the adversary controls a small fraction of nodes, evenly split across the DHT ID space.
+To conceal this information, \cite{KademliaQueryObfuscation} evaluates a threat model where the adversary controls a small fraction of nodes, evenly split across the DHT ID space.
 They propose three methods to obfuscate the key of the query: querying using the hash of the key, querying and deriving the value using private set intersections,
 and querying using the first $l$ bits of the key.
