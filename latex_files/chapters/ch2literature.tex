@@ -1,6 +1,6 @@
 \section{Related Works}
 There are many works on P2P file sharing networks. Closely related to BitTorrent is IPFS \cite{IPFS2022}, an Inter-Planetary File System.
-Files are divided into blocks, then hashed into CIDs (Content Identifiers). These CIDs form a Merkle DAG, creating a root CID.
+Files are divided into blocks, then hashed into a \ac{CID}. These CIDs form a Merkle \ac{DAG}, creating a root CID.
 IPFS organizes servers into Kademlia DHT, which is used to locate the root CID.
 After obtaining the servers responsible for a root CID, the requester can contact these servers to start downloading blocks.
 IPFS differs from BitTorrent by encoding metadata into CIDs, using MultiAddress for flexible communication, and dealing with mutable content by publishing content
