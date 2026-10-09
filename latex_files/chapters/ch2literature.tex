@@ -1,20 +1,24 @@
 \section{Related Works}
-There are many works on P2P file sharing network. Closely related to BitTorrent is IPFS \cite{IPFS2022}, an Inter-Planetary File System.
-Files are divided into blocks, which are hashed into CID (Content Identifiers). These CIDs form a Merkle DAG, creating a root CID.
-IPFS organize servers into Kademlia DHT, which is used to locate the root CID. After obtaining the servers responsible for a root CID, the requester can contact these servers to start downloading blocks.
+There are many works on P2P file sharing networks. Closely related to BitTorrent is IPFS \cite{IPFS2022}, an Inter-Planetary File System.
+Files are divided into blocks, then hashed into CIDs (Content Identifiers). These CIDs form a Merkle DAG, creating a root CID.
+IPFS organizes servers into Kademlia DHT, which is used to locate the root CID.
+After obtaining the servers responsible for a root CID, the requester can contact these servers to start downloading blocks.
 IPFS differs from BitTorrent by encoding metadata into CIDs, using MultiAddress for flexible communication, and dealing with mutable content by publishing content
 using the PeerID instead of the CID.
+Furthermore, IPFS has a clearer boundary between a DHT client and a DHT server. This allows the routing table to ignore DHT clients, speeding up the publication and retrieval process.
 
-Many works recognize Kademlia limitation in matching logical distance with physical distance.
-In \cite{KademliaRouting}, they propose a different node ID format based on IPv4 address so that the logical distance map closer to physical distance.
-They also propose to modify Kademlia default hop strategy to take into account of RTT to prevent extending the latencies per hop.
-They also modify to switch between iterative search and recursive search depending on the churn rate of the network.
+Many works recognize Kademlia's limitation in matching logical distance with physical distance.
+In \cite{KademliaRouting}, they propose a different node ID format based on IPv4 address so that the logical distance maps closer to physical distance.
+Their format specifies the IPv4 address, concatenated with the MD5 hash of the local timestamp and a random number.
+Because the logical distance represents the physical distance, they also propose to modify Kademlia's default hop strategy to take into account RTT to prevent extending the latency per hop.
+Additionally, their lookup strategy switches between iterative search and recursive search depending on the churn rate of the network.
 
 When a node holding a BitTorrent piece goes down, if no other peers in the swarm hold that piece, the download is incomplete.
-In \cite{IPFSAvailability}, they propose using the servers with the first matching $y$-bits with the CID to permanently stores that data.
-They also propose an ID assignment to ensure servers responsible for the same CID are geographically dispersed.
+In \cite{IPFSAvailability}, they propose using the servers with the first matching $y$-bits of the CID to permanently store that data.
+They also argue that the default ID assignment may result in multiple servers responsible for the same CID being close to each other.
+Therefore, they also propose an ID assignment to ensure servers responsible for the same CID are geographically dispersed.
 
-In Kademlia DHT, the key in the query reveals the interest of a node to a particular value.
+In Kademlia DHT, the key in the query reveals the interest of a node in a particular value.
 To conceal this information, \cite{KademliaQueryObfuscation} evaluate a threat model where the adversary controls a small fraction of nodes, evenly split across the DHT ID space.
-They proposes three methods to obfuscate the key of the query: querying using the hash of the key, querying and deriving the value using private set intersections,
+They propose three methods to obfuscate the key of the query: querying using the hash of the key, querying and deriving the value using private set intersections,
 and querying using the first $l$ bits of the key.
