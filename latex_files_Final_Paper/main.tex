@@ -1,0 +1,132 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+% \usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+
+
+\usepackage{mathptmx}
+\usepackage{titletoc}
+\usepackage[titles]{tocloft}
+\usepackage{pgfgantt}
+\usepackage{bookmark}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{indentfirst}
+\usepackage{acronym}
+\usepackage{caption}
+%Please add the following packages if necessary:
+\usepackage{booktabs, multirow} % for borders and merged ranges
+\usepackage{soul}% for underlines
+\usepackage{xcolor,colortbl} % for cell colors
+\usepackage{changepage,threeparttable} % for wide tables
+\usepackage[style=ieee, backend=biber,]{biblatex}
+\addbibresource{ref.bib}
+
+\usepackage{balance}
+\usepackage{lastpage}
+
+\makeatletter
+\def\lastreferencepage{\lastpage@lastpage} % can use a hard-coded number instead
+\makeatother
+\def\balanceissued{unbalanced}% ensure \balance only used once
+\renewbibmacro{finentry}{%
+    \ifnum\thepage=\lastreferencepage%
+        \expandafter\ifx\expandafter\relax\balanceissued\relax%
+        \else%
+            \balance%
+            \gdef\balanceissued{\relax}%
+        \fi%
+    \fi%
+    \finentry%
+}
+
+\usepackage{hyperref} % Link chapters and sections
+\hypersetup{
+    colorlinks=true,
+    citecolor=blue,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Creating a BitTorrent application with an improved Kademlia implementation},
+    }
+
+\usepackage{fontspec}
+
+\newacro{⟨acronym⟩}[⟨short name⟩]{⟨full name⟩}
+\acrodef{CPU}{Central Processing Unit}
+\acrodef{V-Cache}{Vertical Cache}
+\acrodef{L1}{Level 1}
+\acrodef{L2}{Level 2}
+\acrodef{L3}{Level 3}
+\acrodef{IPC}{instructions per cycle}
+\acrodef{Hz}{cycles per second}
+\acrodef{CMP}{Chip Multi-Processor}
+\acrodef{TSV}{Through-Silicon Via}
+\acrodef{SRAM}{Static Random Access Memory}
+\acrodef{DRAM}{Dynamic Random Access Memory}
+\acrodef{DDR}{Double Date Rate}
+\acrodef{TDP}{Thermal Design Power}
+\acrodef{bLLC}{big Last Level Cache}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{CS249: Creating a BitTorrent application with an improved Kademlia implementation\\
+}
+
+\author{
+\IEEEauthorblockN{Ricardo Avila Miranda}
+\IEEEauthorblockA{\textit{Department of Computer Science} \\
+\textit{San Jose State University}\\
+San Jose, California, USA \\
+ricardo.miranda@sjsu.edu}
+\and
+\IEEEauthorblockN{Bach Ngo}
+\IEEEauthorblockA{\textit{Department of Computer Science} \\
+\textit{San Jose State University}\\
+San Jose, California, USA \\
+bach.h.ngo@sjsu.edu}
+}
+
+
+\maketitle
+
+\begin{abstract}
+TODO
+\end{abstract}
+
+\begin{IEEEkeywords}
+BitTorrent, Distributed Hash Table, Kademlia Routing
+\end{IEEEkeywords}
+
+\section{Introduction}
+\label{backgroundinfo}
+\input{sections/section1.tex}
+
+\section{Section 2}
+\input{sections/section2.tex}
+
+
+\section{Section 3}
+\input{sections/section3.tex}
+
+\section{Section 4}
+\input{sections/section4.tex}
+
+\section{Conclusion}
+\input{sections/section5.tex}
+
+
+
+\printbibliography[
+heading=bibintoc,
+title={References}
+]
+\IEEEtriggeratref{17}
+\end{document}

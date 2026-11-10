@@ -1,0 +1,47 @@
+\begin{figure}[tbp]
+    \begin{center}
+    
+    \begin{ganttchart}[y unit title=0.4cm,
+    y unit chart=0.5cm,
+    vgrid,hgrid, 
+    title label anchor/.style={below=-1.6ex},
+    title left shift=.05,
+    title right shift=-.05,
+    title height=1,
+    progress label text={},
+    bar height=0.7,
+    group right shift=0,
+    group top shift=.6,
+    group height=.3]{1}{24}
+    %labels
+    \gantttitle{Fall Semester}{24} \\
+    \gantttitle{Weeks 1-4}{6} 
+    \gantttitle{Weeks 5-8}{6} 
+    \gantttitle{Weeks 9-12}{6} 
+    \gantttitle{Weeks 13-16}{6}  \\
+    %tasks
+    \ganttbar{ML Classifiers}{1}{2} \\
+    \ganttbar{NLP \& LLM Bot Guard}{3}{6} \\
+    \ganttbar{Duplicate Twibot-22}{7}{9} \\
+    \ganttbar{Run methods on Twibot}{10}{12} \\
+    \ganttbar{Create X Bot}{13}{13} \\
+    \ganttbar{Generate data}{14}{16} \\
+    \ganttbar{Automate tasks via GPT}{16}{18} \\
+    \ganttbar{Apply methods on bot}{19}{24}
+    
+    %relations 
+    \ganttlink{elem0}{elem1} 
+    % \ganttlink{elem0}{elem3} 
+    \ganttlink{elem1}{elem2} 
+    \ganttlink{elem2}{elem3} 
+    % \ganttlink{elem1}{elem5} 
+    \ganttlink{elem3}{elem4} 
+    \ganttlink{elem4}{elem5} 
+    \ganttlink{elem5}{elem6} 
+    \ganttlink{elem6}{elem7} 
+    \end{ganttchart}
+
+    \caption{Gantt Chart}
+    \end{center}
+
+\end{figure}

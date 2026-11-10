@@ -1,0 +1,23 @@
+[0] Config.pm:328> INFO - This is Biber 2.21
+[0] Config.pm:331> INFO - Logfile is 'main.blg'
+[21] biber-darwin:342> INFO - === Mon Sep  7, 2026, 12:10:59
+[27] Biber.pm:421> INFO - Reading 'main.bcf'
+[52] Biber.pm:1002> INFO - Found 20 citekeys in bib section 0
+[57] Biber.pm:4487> INFO - Processing section 0
+[60] Biber.pm:4678> INFO - Looking for bibtex file 'ref.bib' for section 0
+[61] bibtex.pm:1713> INFO - LaTeX decoding ...
+[68] bibtex.pm:1519> INFO - Found BibTeX data source 'ref.bib'
+[120] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[120] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[120] Biber.pm:4307> INFO - Sorting list 'none/global//global/global/global' of type 'entry' with template 'none' and locale 'en-US'
+[120] Biber.pm:4313> INFO - No sort tailoring available for locale 'en-US'
+[125] bbl.pm:676> INFO - Writing 'main.bbl' with encoding 'UTF-8'
+[128] bbl.pm:779> INFO - Output to main.bbl
+[128] Biber.pm:132> WARN - online entry 'MemoryBoundDef' (ref.bib): Invalid format 'April 18, 2026' of date field 'date' - ignoring
+[128] Biber.pm:132> WARN - online entry 'CacheMemoryImage' (ref.bib): Invalid format 'October 30, 2025' of date field 'date' - ignoring
+[128] Biber.pm:132> WARN - online entry 'MemorySpeeds' (ref.bib): Invalid format 'June 6, 2016' of date field 'date' - ignoring
+[128] Biber.pm:132> WARN - online entry '9950X3DSpecs' (ref.bib): Invalid format 'March 12, 2025' of date field 'date' - ignoring
+[128] Biber.pm:132> WARN - online entry '9950X3DBenchmarks' (ref.bib): Invalid format 'March 12, 2025' of date field 'date' - ignoring
+[128] Biber.pm:132> WARN - online entry 'IntelVsAMD' (ref.bib): Invalid format 'November 17, 2020' of date field 'date' - ignoring
+[128] Biber.pm:132> WARN - online entry 'IntelbLLC' (ref.bib): Invalid format 'November 26, 2025' of date field 'date' - ignoring
+[128] Biber.pm:134> INFO - WARNINGS: 7

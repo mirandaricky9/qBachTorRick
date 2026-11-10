@@ -1,0 +1,789 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{none/global//global/global/global}
+    \entry{CPUFrequencyStalled}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=df7f17b185192b88065e96f603b9f87f}{%
+           family={Ross},
+           familyi={R\bibinitperiod},
+           given={Philip\bibnamedelima E.},
+           giveni={P\bibinitperiod\bibinitdelim E\bibinitperiod}}}%
+      }
+      \strng{namehash}{df7f17b185192b88065e96f603b9f87f}
+      \strng{fullhash}{df7f17b185192b88065e96f603b9f87f}
+      \strng{fullhashraw}{df7f17b185192b88065e96f603b9f87f}
+      \strng{bibnamehash}{df7f17b185192b88065e96f603b9f87f}
+      \strng{authorbibnamehash}{df7f17b185192b88065e96f603b9f87f}
+      \strng{authornamehash}{df7f17b185192b88065e96f603b9f87f}
+      \strng{authorfullhash}{df7f17b185192b88065e96f603b9f87f}
+      \strng{authorfullhashraw}{df7f17b185192b88065e96f603b9f87f}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Spectrum}
+      \field{number}{4}
+      \field{title}{Why CPU Frequency Stalled}
+      \field{volume}{45}
+      \field{year}{2008}
+      \field{pages}{72\bibrangedash 72}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1109/MSPEC.2008.4476447
+      \endverb
+      \keyw{Clocks;Central Processing Unit;Heating systems;Multicore processing;Transistors;Silicon;Power demand}
+    \endentry
+    \entry{MaximizeThroughputWith3DCache}{inproceedings}{}{}
+      \name{author}{4}{}{%
+        {{hash=b1efcc1eb4931d0953b789f6c2cb118f}{%
+           family={Kang},
+           familyi={K\bibinitperiod},
+           given={Kyungsu},
+           giveni={K\bibinitperiod}}}%
+        {{hash=bdccea0649c511a065ce4dd27031f9e4}{%
+           family={Jung},
+           familyi={J\bibinitperiod},
+           given={Jongpil},
+           giveni={J\bibinitperiod}}}%
+        {{hash=2538148fcfacddefed8d7acd8201539b}{%
+           family={Yoo},
+           familyi={Y\bibinitperiod},
+           given={Sungjoo},
+           giveni={S\bibinitperiod}}}%
+        {{hash=d3a84a68c047a95a3f4c1fbc866ffbd0}{%
+           family={Kyung},
+           familyi={K\bibinitperiod},
+           given={Chong-Min},
+           giveni={C\bibinithyphendelim M\bibinitperiod}}}%
+      }
+      \strng{namehash}{f3905c2c9f61b0c4540c5f4a558ffb46}
+      \strng{fullhash}{2d333ffc8ea51f96a7f266196212e605}
+      \strng{fullhashraw}{2d333ffc8ea51f96a7f266196212e605}
+      \strng{bibnamehash}{2d333ffc8ea51f96a7f266196212e605}
+      \strng{authorbibnamehash}{2d333ffc8ea51f96a7f266196212e605}
+      \strng{authornamehash}{f3905c2c9f61b0c4540c5f4a558ffb46}
+      \strng{authorfullhash}{2d333ffc8ea51f96a7f266196212e605}
+      \strng{authorfullhashraw}{2d333ffc8ea51f96a7f266196212e605}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{2011 12th International Symposium on Quality Electronic Design}
+      \field{title}{Maximizing throughput of temperature-constrained multi-core systems with 3D-stacked cache memory}
+      \field{year}{2011}
+      \field{pages}{1\bibrangedash 6}
+      \range{pages}{6}
+      \verb{doi}
+      \verb 10.1109/ISQED.2011.5770786
+      \endverb
+      \keyw{Clocks;Cache memory;Three dimensional displays;Multicore processing;Radio spectrum management;Thermal resistance;Benchmark testing;3D integration;Chip-multiprocessor;Dynamic voltage and frequency scaling;Power gating;Thermal management}
+    \endentry
+    \entry{Memory&CPUBound}{incollection}{}{}
+      \name{editor}{1}{}{%
+        {{hash=705924582e9f70923baf21b41c338513}{%
+           family={Kukunas},
+           familyi={K\bibinitperiod},
+           given={Jim},
+           giveni={J\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Boston}%
+      }
+      \list{publisher}{1}{%
+        {Morgan Kaufmann}%
+      }
+      \strng{namehash}{705924582e9f70923baf21b41c338513}
+      \strng{fullhash}{705924582e9f70923baf21b41c338513}
+      \strng{fullhashraw}{705924582e9f70923baf21b41c338513}
+      \strng{bibnamehash}{705924582e9f70923baf21b41c338513}
+      \strng{editorbibnamehash}{705924582e9f70923baf21b41c338513}
+      \strng{editornamehash}{705924582e9f70923baf21b41c338513}
+      \strng{editorfullhash}{705924582e9f70923baf21b41c338513}
+      \strng{editorfullhashraw}{705924582e9f70923baf21b41c338513}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{editor}
+      \field{labeltitlesource}{title}
+      \field{abstract}{This chapter provides an introduction to the process of performance profiling. The first section covers the fundamentals of the core and uncore PMU available on Intel(R) processors. The Section 6.2 explores the Top-Down Hierarchical technique for using PMU events to identify issues affecting pipeline efficiency.}
+      \field{booktitle}{Power and Performance}
+      \field{isbn}{978-0-12-800726-6}
+      \field{title}{Chapter 6 - Introduction to Profiling}
+      \field{year}{2015}
+      \field{pages}{105\bibrangedash 118}
+      \range{pages}{14}
+      \verb{doi}
+      \verb https://doi.org/10.1016/B978-0-12-800726-6.00006-9
+      \endverb
+      \verb{urlraw}
+      \verb https://www.sciencedirect.com/science/article/pii/B9780128007266000069
+      \endverb
+      \verb{url}
+      \verb https://www.sciencedirect.com/science/article/pii/B9780128007266000069
+      \endverb
+      \keyw{PMU,Top-down,Event counters}
+    \endentry
+    \entry{MemoryBoundDef}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=9c677286866aad38f8e9b660f5411814}{%
+           family={Wikipedia},
+           familyi={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{fullhash}{9c677286866aad38f8e9b660f5411814}
+      \strng{fullhashraw}{9c677286866aad38f8e9b660f5411814}
+      \strng{bibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorbibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authornamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorfullhash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorfullhashraw}{9c677286866aad38f8e9b660f5411814}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Memory-bound function}
+      \field{year}{2025}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/Memory-bound_function
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/Memory-bound_function
+      \endverb
+      \warn{\item online entry 'MemoryBoundDef' (ref.bib): Invalid format 'April 18, 2026' of date field 'date' - ignoring}
+    \endentry
+    \entry{MemoryBoundFunctions}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=f39ffee58f8a71d84d8b13c05804b2cc}{%
+           family={Abadi},
+           familyi={A\bibinitperiod},
+           given={Martin},
+           giveni={M\bibinitperiod}}}%
+        {{hash=52bd219ee38c5f14ff2c280e7e4216d1}{%
+           family={Burrows},
+           familyi={B\bibinitperiod},
+           given={Mike},
+           giveni={M\bibinitperiod}}}%
+        {{hash=c866db37170c3d98293fc5aed82277e9}{%
+           family={Manasse},
+           familyi={M\bibinitperiod},
+           given={Mark},
+           giveni={M\bibinitperiod}}}%
+        {{hash=ce10c8f79bbe0c6954a368ad4cf287f1}{%
+           family={Wobber},
+           familyi={W\bibinitperiod},
+           given={Ted},
+           giveni={T\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {New York, NY, USA}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery}%
+      }
+      \strng{namehash}{1cf6f3c19f4fd018f06a8f6a49bc4394}
+      \strng{fullhash}{0a86cd669316e7bc1a7cb6aaf16194fc}
+      \strng{fullhashraw}{0a86cd669316e7bc1a7cb6aaf16194fc}
+      \strng{bibnamehash}{0a86cd669316e7bc1a7cb6aaf16194fc}
+      \strng{authorbibnamehash}{0a86cd669316e7bc1a7cb6aaf16194fc}
+      \strng{authornamehash}{1cf6f3c19f4fd018f06a8f6a49bc4394}
+      \strng{authorfullhash}{0a86cd669316e7bc1a7cb6aaf16194fc}
+      \strng{authorfullhashraw}{0a86cd669316e7bc1a7cb6aaf16194fc}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{A resource may be abused if its users incur little or no cost. For example, e-mail abuse is rampant because sending an e-mail has negligible cost for the sender. It has been suggested that such abuse may be discouraged by introducing an artificial cost in the form of a moderately expensive computation. Thus, the sender of an e-mail might be required to pay by computing for a few seconds before the e-mail is accepted. Unfortunately, because of sharp disparities across computer systems, this approach may be ineffective against malicious users with high-end systems, prohibitively slow for legitimate users with low-end systems, or both. Starting from this observation, we research moderately hard functions that most recent systems will evaluate at about the same speed. For this purpose, we rely on memory-bound computations. We describe and analyze a family of moderately hard, memory-bound functions, and we explain how to use them for protecting against abuses.}
+      \field{issn}{1533-5399}
+      \field{journaltitle}{ACM Trans. Internet Technol.}
+      \field{month}{5}
+      \field{number}{2}
+      \field{title}{Moderately hard, memory-bound functions}
+      \field{volume}{5}
+      \field{year}{2005}
+      \field{pages}{299\bibrangedash 327}
+      \range{pages}{29}
+      \verb{doi}
+      \verb 10.1145/1064340.1064341
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1145/1064340.1064341
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1145/1064340.1064341
+      \endverb
+      \keyw{Spam}
+    \endentry
+    \entry{CPUArchitectureBook}{book}{}{}
+      \name{author}{2}{}{%
+        {{hash=4a8413316ec7be7d755a4fe10f938783}{%
+           family={Harris},
+           familyi={H\bibinitperiod},
+           given={David\bibnamedelima Money},
+           giveni={D\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=c889d6c06d0bd6146e7b6505328d4a20}{%
+           family={L.},
+           familyi={L\bibinitperiod},
+           given={Harris\bibnamedelima Sarah},
+           giveni={H\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+      }
+      \strng{namehash}{afc5b47d9785f4628dbbeddcd9c2f816}
+      \strng{fullhash}{afc5b47d9785f4628dbbeddcd9c2f816}
+      \strng{fullhashraw}{afc5b47d9785f4628dbbeddcd9c2f816}
+      \strng{bibnamehash}{afc5b47d9785f4628dbbeddcd9c2f816}
+      \strng{authorbibnamehash}{afc5b47d9785f4628dbbeddcd9c2f816}
+      \strng{authornamehash}{afc5b47d9785f4628dbbeddcd9c2f816}
+      \strng{authorfullhash}{afc5b47d9785f4628dbbeddcd9c2f816}
+      \strng{authorfullhashraw}{afc5b47d9785f4628dbbeddcd9c2f816}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Digital Design and Computer Architecture}
+      \field{year}{2007}
+    \endentry
+    \entry{CacheMemoryImage}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=e39b9c178b2c9be4e99b141d956c6ff6}{%
+           family={GeeksForGeeks},
+           familyi={G\bibinitperiod}}}%
+      }
+      \name{editor}{1}{}{%
+        {{hash=e39b9c178b2c9be4e99b141d956c6ff6}{%
+           family={GeeksForGeeks},
+           familyi={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{e39b9c178b2c9be4e99b141d956c6ff6}
+      \strng{fullhash}{e39b9c178b2c9be4e99b141d956c6ff6}
+      \strng{fullhashraw}{e39b9c178b2c9be4e99b141d956c6ff6}
+      \strng{bibnamehash}{e39b9c178b2c9be4e99b141d956c6ff6}
+      \strng{authorbibnamehash}{e39b9c178b2c9be4e99b141d956c6ff6}
+      \strng{authornamehash}{e39b9c178b2c9be4e99b141d956c6ff6}
+      \strng{authorfullhash}{e39b9c178b2c9be4e99b141d956c6ff6}
+      \strng{authorfullhashraw}{e39b9c178b2c9be4e99b141d956c6ff6}
+      \strng{editorbibnamehash}{e39b9c178b2c9be4e99b141d956c6ff6}
+      \strng{editornamehash}{e39b9c178b2c9be4e99b141d956c6ff6}
+      \strng{editorfullhash}{e39b9c178b2c9be4e99b141d956c6ff6}
+      \strng{editorfullhashraw}{e39b9c178b2c9be4e99b141d956c6ff6}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Cache Memory}
+      \field{year}{2025}
+      \verb{urlraw}
+      \verb https://www.geeksforgeeks.org/computer-science-fundamentals/cache-memory/
+      \endverb
+      \verb{url}
+      \verb https://www.geeksforgeeks.org/computer-science-fundamentals/cache-memory/
+      \endverb
+      \warn{\item online entry 'CacheMemoryImage' (ref.bib): Invalid format 'October 30, 2025' of date field 'date' - ignoring}
+    \endentry
+    \entry{DDRSpeeds}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=87e83d3793ed3c6f5d7acbeee8912127}{%
+           family={Crucial},
+           familyi={C\bibinitperiod},
+           given={Micron},
+           giveni={M\bibinitperiod}}}%
+      }
+      \name{editor}{1}{}{%
+        {{hash=87e83d3793ed3c6f5d7acbeee8912127}{%
+           family={Crucial},
+           familyi={C\bibinitperiod},
+           given={Micron},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{87e83d3793ed3c6f5d7acbeee8912127}
+      \strng{fullhash}{87e83d3793ed3c6f5d7acbeee8912127}
+      \strng{fullhashraw}{87e83d3793ed3c6f5d7acbeee8912127}
+      \strng{bibnamehash}{87e83d3793ed3c6f5d7acbeee8912127}
+      \strng{authorbibnamehash}{87e83d3793ed3c6f5d7acbeee8912127}
+      \strng{authornamehash}{87e83d3793ed3c6f5d7acbeee8912127}
+      \strng{authorfullhash}{87e83d3793ed3c6f5d7acbeee8912127}
+      \strng{authorfullhashraw}{87e83d3793ed3c6f5d7acbeee8912127}
+      \strng{editorbibnamehash}{87e83d3793ed3c6f5d7acbeee8912127}
+      \strng{editornamehash}{87e83d3793ed3c6f5d7acbeee8912127}
+      \strng{editorfullhash}{87e83d3793ed3c6f5d7acbeee8912127}
+      \strng{editorfullhashraw}{87e83d3793ed3c6f5d7acbeee8912127}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{DDR memory speeds and compatability}
+      \verb{urlraw}
+      \verb https://www.crucial.com/support/memory-speeds-compatability
+      \endverb
+      \verb{url}
+      \verb https://www.crucial.com/support/memory-speeds-compatability
+      \endverb
+    \endentry
+    \entry{MemorySpeeds}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=93f872a22ec2c226373ae13ec816b665}{%
+           family={Brett},
+           familyi={B\bibinitperiod},
+           given={Bevin},
+           giveni={B\bibinitperiod}}}%
+      }
+      \strng{namehash}{93f872a22ec2c226373ae13ec816b665}
+      \strng{fullhash}{93f872a22ec2c226373ae13ec816b665}
+      \strng{fullhashraw}{93f872a22ec2c226373ae13ec816b665}
+      \strng{bibnamehash}{93f872a22ec2c226373ae13ec816b665}
+      \strng{authorbibnamehash}{93f872a22ec2c226373ae13ec816b665}
+      \strng{authornamehash}{93f872a22ec2c226373ae13ec816b665}
+      \strng{authorfullhash}{93f872a22ec2c226373ae13ec816b665}
+      \strng{authorfullhashraw}{93f872a22ec2c226373ae13ec816b665}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Memory Performance in a Nutshell}
+      \field{year}{2016}
+      \verb{urlraw}
+      \verb https://www.intel.com/content/www/us/en/developer/articles/technical/memory-performance-in-a-nutshell.html
+      \endverb
+      \verb{url}
+      \verb https://www.intel.com/content/www/us/en/developer/articles/technical/memory-performance-in-a-nutshell.html
+      \endverb
+      \warn{\item online entry 'MemorySpeeds' (ref.bib): Invalid format 'June 6, 2016' of date field 'date' - ignoring}
+    \endentry
+    \entry{CacheManagement}{inproceedings}{}{}
+      \name{author}{4}{}{%
+        {{hash=bdccea0649c511a065ce4dd27031f9e4}{%
+           family={Jung},
+           familyi={J\bibinitperiod},
+           given={Jongpil},
+           giveni={J\bibinitperiod}}}%
+        {{hash=b1efcc1eb4931d0953b789f6c2cb118f}{%
+           family={Kang},
+           familyi={K\bibinitperiod},
+           given={Kyungsu},
+           giveni={K\bibinitperiod}}}%
+        {{hash=f836daa48dbb4365039ceb7f1687bdd5}{%
+           family={De\bibnamedelima Micheli},
+           familyi={D\bibinitperiod\bibinitdelim M\bibinitperiod},
+           given={Giovanni},
+           giveni={G\bibinitperiod}}}%
+        {{hash=d3a84a68c047a95a3f4c1fbc866ffbd0}{%
+           family={Kyung},
+           familyi={K\bibinitperiod},
+           given={Chong-Min},
+           giveni={C\bibinithyphendelim M\bibinitperiod}}}%
+      }
+      \strng{namehash}{7a69e70c13ce14c1d30a40cdc42b4f5e}
+      \strng{fullhash}{cc614b49a6ec470251957fb57f5926ec}
+      \strng{fullhashraw}{cc614b49a6ec470251957fb57f5926ec}
+      \strng{bibnamehash}{cc614b49a6ec470251957fb57f5926ec}
+      \strng{authorbibnamehash}{cc614b49a6ec470251957fb57f5926ec}
+      \strng{authornamehash}{7a69e70c13ce14c1d30a40cdc42b4f5e}
+      \strng{authorfullhash}{cc614b49a6ec470251957fb57f5926ec}
+      \strng{authorfullhashraw}{cc614b49a6ec470251957fb57f5926ec}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{International Symposium on Quality Electronic Design (ISQED)}
+      \field{title}{Runtime 3-D stacked cache management for chip-multiprocessors}
+      \field{year}{2013}
+      \field{pages}{68\bibrangedash 72}
+      \range{pages}{5}
+      \verb{doi}
+      \verb 10.1109/ISQED.2013.6523592
+      \endverb
+      \keyw{Runtime;Benchmark testing;Random access memory;Switches;Partitioning algorithms;Cache memory;Multicore processing;3-D IC;memory stacking;cache partitioning;runtime cache management;chip-multiprocessor}
+    \endentry
+    \entry{3-DVCache}{inproceedings}{}{}
+      \name{author}{10}{}{%
+        {{hash=bb9c0a5d228f5f8a3421429cf3d11804}{%
+           family={Wuu},
+           familyi={W\bibinitperiod},
+           given={John},
+           giveni={J\bibinitperiod}}}%
+        {{hash=bacb2098c7900f21f46b6393a1c1fda1}{%
+           family={Agarwal},
+           familyi={A\bibinitperiod},
+           given={Rahul},
+           giveni={R\bibinitperiod}}}%
+        {{hash=552b6f0751699a8842b7b35ec1ff23e4}{%
+           family={Ciraula},
+           familyi={C\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod}}}%
+        {{hash=2a6434c29b59d6cfb5bcfa1e9a71c27a}{%
+           family={Dietz},
+           familyi={D\bibinitperiod},
+           given={Carl},
+           giveni={C\bibinitperiod}}}%
+        {{hash=cf50699387243454eac947b1ddaa633c}{%
+           family={Johnson},
+           familyi={J\bibinitperiod},
+           given={Brett},
+           giveni={B\bibinitperiod}}}%
+        {{hash=b2a4098336c035aacbc8dd51e901ecc4}{%
+           family={Johnson},
+           familyi={J\bibinitperiod},
+           given={Dave},
+           giveni={D\bibinitperiod}}}%
+        {{hash=c33339f761083f1d9c3653f6aedce0cc}{%
+           family={Schreiber},
+           familyi={S\bibinitperiod},
+           given={Russell},
+           giveni={R\bibinitperiod}}}%
+        {{hash=1616e564dee830b04e7748eb2cbc069c}{%
+           family={Swaminathan},
+           familyi={S\bibinitperiod},
+           given={Raja},
+           giveni={R\bibinitperiod}}}%
+        {{hash=fabb3f7e40db4e926a46d1a48953d23f}{%
+           family={Walker},
+           familyi={W\bibinitperiod},
+           given={Will},
+           giveni={W\bibinitperiod}}}%
+        {{hash=c11acf902e50b25c588c8c18d117f809}{%
+           family={Naffziger},
+           familyi={N\bibinitperiod},
+           given={Samuel},
+           giveni={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{96a030739cc09c4084f370bdd03dbcb9}
+      \strng{fullhash}{90f428c018e8aa3c9cff77a5188fc3b3}
+      \strng{fullhashraw}{90f428c018e8aa3c9cff77a5188fc3b3}
+      \strng{bibnamehash}{96a030739cc09c4084f370bdd03dbcb9}
+      \strng{authorbibnamehash}{96a030739cc09c4084f370bdd03dbcb9}
+      \strng{authornamehash}{96a030739cc09c4084f370bdd03dbcb9}
+      \strng{authorfullhash}{90f428c018e8aa3c9cff77a5188fc3b3}
+      \strng{authorfullhashraw}{90f428c018e8aa3c9cff77a5188fc3b3}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{2022 IEEE International Solid-State Circuits Conference (ISSCC)}
+      \field{title}{3D V-Cache: the Implementation of a Hybrid-Bonded 64MB Stacked Cache for a 7nm x86-64 CPU}
+      \field{volume}{65}
+      \field{year}{2022}
+      \field{pages}{428\bibrangedash 429}
+      \range{pages}{2}
+      \verb{doi}
+      \verb 10.1109/ISSCC42614.2022.9731565
+      \endverb
+      \keyw{Three-dimensional displays;Conferences;Discrete Fourier transforms;Bandwidth;Hybrid power systems;Central Processing Unit;Bonding}
+    \endentry
+    \entry{CopperThrough-Vias}{inproceedings}{}{}
+      \name{author}{6}{}{%
+        {{hash=225915e815570ca45cd82515179827ca}{%
+           family={Tanaka},
+           familyi={T\bibinitperiod},
+           given={N.},
+           giveni={N\bibinitperiod}}}%
+        {{hash=ca8df0535bc96db6c2cb72a627f3b5ed}{%
+           family={Sato},
+           familyi={S\bibinitperiod},
+           given={T.},
+           giveni={T\bibinitperiod}}}%
+        {{hash=e54b5be20e7ae19ae6d29984dff49b02}{%
+           family={Yamaji},
+           familyi={Y\bibinitperiod},
+           given={Y.},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=2a5263ce633d55585cb42183b1f041c4}{%
+           family={Morifuji},
+           familyi={M\bibinitperiod},
+           given={T.},
+           giveni={T\bibinitperiod}}}%
+        {{hash=93a502d06411d44b030022841fc6290b}{%
+           family={Umemoto},
+           familyi={U\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod}}}%
+        {{hash=e8bc87fd9a78a7d5203999be8022da4c}{%
+           family={Takahashi},
+           familyi={T\bibinitperiod},
+           given={K.},
+           giveni={K\bibinitperiod}}}%
+      }
+      \strng{namehash}{095bb08741ed29ca0df79e3c129aeee3}
+      \strng{fullhash}{236a8fdeaf1b245ce271bf38959ebb70}
+      \strng{fullhashraw}{236a8fdeaf1b245ce271bf38959ebb70}
+      \strng{bibnamehash}{236a8fdeaf1b245ce271bf38959ebb70}
+      \strng{authorbibnamehash}{236a8fdeaf1b245ce271bf38959ebb70}
+      \strng{authornamehash}{095bb08741ed29ca0df79e3c129aeee3}
+      \strng{authorfullhash}{236a8fdeaf1b245ce271bf38959ebb70}
+      \strng{authorfullhashraw}{236a8fdeaf1b245ce271bf38959ebb70}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{52nd Electronic Components and Technology Conference 2002. (Cat. No.02CH37345)}
+      \field{title}{Mechanical effects of copper through-vias in a 3D die-stacked module}
+      \field{year}{2002}
+      \field{pages}{473\bibrangedash 479}
+      \range{pages}{7}
+      \verb{doi}
+      \verb 10.1109/ECTC.2002.1008138
+      \endverb
+      \keyw{Copper;Thermal stresses;Packaging;Fabrication;Testing;Etching;Chemical vapor deposition;Insulation;Wafer bonding;Silicon}
+    \endentry
+    \entry{5800X3DSpecs}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=48af4341f745163f945fa838eeabb062}{%
+           family={AMD},
+           familyi={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{48af4341f745163f945fa838eeabb062}
+      \strng{fullhash}{48af4341f745163f945fa838eeabb062}
+      \strng{fullhashraw}{48af4341f745163f945fa838eeabb062}
+      \strng{bibnamehash}{48af4341f745163f945fa838eeabb062}
+      \strng{authorbibnamehash}{48af4341f745163f945fa838eeabb062}
+      \strng{authornamehash}{48af4341f745163f945fa838eeabb062}
+      \strng{authorfullhash}{48af4341f745163f945fa838eeabb062}
+      \strng{authorfullhashraw}{48af4341f745163f945fa838eeabb062}
+      \field{extraname}{1}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{AMD Ryzen 7 5800X3D Gaming Processor}
+      \field{year}{2020}
+      \verb{urlraw}
+      \verb https://www.amd.com/en/products/processors/desktops/ryzen/5000-series/amd-ryzen-7-5800x3d.html
+      \endverb
+      \verb{url}
+      \verb https://www.amd.com/en/products/processors/desktops/ryzen/5000-series/amd-ryzen-7-5800x3d.html
+      \endverb
+    \endentry
+    \entry{5900XSpecs}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=48af4341f745163f945fa838eeabb062}{%
+           family={AMD},
+           familyi={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{48af4341f745163f945fa838eeabb062}
+      \strng{fullhash}{48af4341f745163f945fa838eeabb062}
+      \strng{fullhashraw}{48af4341f745163f945fa838eeabb062}
+      \strng{bibnamehash}{48af4341f745163f945fa838eeabb062}
+      \strng{authorbibnamehash}{48af4341f745163f945fa838eeabb062}
+      \strng{authornamehash}{48af4341f745163f945fa838eeabb062}
+      \strng{authorfullhash}{48af4341f745163f945fa838eeabb062}
+      \strng{authorfullhashraw}{48af4341f745163f945fa838eeabb062}
+      \field{extraname}{2}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{AMD Ryzen 9 5900X Desktop Processor}
+      \field{year}{2020}
+      \verb{urlraw}
+      \verb https://www.amd.com/en/products/processors/desktops/ryzen/5000-series/amd-ryzen-9-5900x.html
+      \endverb
+      \verb{url}
+      \verb https://www.amd.com/en/products/processors/desktops/ryzen/5000-series/amd-ryzen-9-5900x.html
+      \endverb
+    \endentry
+    \entry{CoreScaling}{online}{}{}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labeltitlesource}{title}
+      \field{title}{Core Scaling and Gaming Performance — How Many Cores Do You Need?}
+      \verb{urlraw}
+      \verb https://medium.com/performance-at-intel/core-scaling-and-gaming-performance-how-many-cores-do-you-need-8b45c0f3e4a3
+      \endverb
+      \verb{url}
+      \verb https://medium.com/performance-at-intel/core-scaling-and-gaming-performance-how-many-cores-do-you-need-8b45c0f3e4a3
+      \endverb
+    \endentry
+    \entry{9950X3DSpecs}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=48af4341f745163f945fa838eeabb062}{%
+           family={AMD},
+           familyi={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{48af4341f745163f945fa838eeabb062}
+      \strng{fullhash}{48af4341f745163f945fa838eeabb062}
+      \strng{fullhashraw}{48af4341f745163f945fa838eeabb062}
+      \strng{bibnamehash}{48af4341f745163f945fa838eeabb062}
+      \strng{authorbibnamehash}{48af4341f745163f945fa838eeabb062}
+      \strng{authornamehash}{48af4341f745163f945fa838eeabb062}
+      \strng{authorfullhash}{48af4341f745163f945fa838eeabb062}
+      \strng{authorfullhashraw}{48af4341f745163f945fa838eeabb062}
+      \field{extraname}{3}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{AMD Ryzen 9 9950X3D Gaming and Content Creation Processor}
+      \field{year}{2025}
+      \verb{urlraw}
+      \verb https://www.amd.com/en/products/processors/desktops/ryzen/9000-series/amd-ryzen-9-9950x3d.html
+      \endverb
+      \verb{url}
+      \verb https://www.amd.com/en/products/processors/desktops/ryzen/9000-series/amd-ryzen-9-9950x3d.html
+      \endverb
+      \warn{\item online entry '9950X3DSpecs' (ref.bib): Invalid format 'March 12, 2025' of date field 'date' - ignoring}
+    \endentry
+    \entry{9950X3DBenchmarks}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=76abc533447cdcbb436af4eaa48fea62}{%
+           family={Nexsus},
+           familyi={N\bibinitperiod},
+           given={Gamers},
+           giveni={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{76abc533447cdcbb436af4eaa48fea62}
+      \strng{fullhash}{76abc533447cdcbb436af4eaa48fea62}
+      \strng{fullhashraw}{76abc533447cdcbb436af4eaa48fea62}
+      \strng{bibnamehash}{76abc533447cdcbb436af4eaa48fea62}
+      \strng{authorbibnamehash}{76abc533447cdcbb436af4eaa48fea62}
+      \strng{authornamehash}{76abc533447cdcbb436af4eaa48fea62}
+      \strng{authorfullhash}{76abc533447cdcbb436af4eaa48fea62}
+      \strng{authorfullhashraw}{76abc533447cdcbb436af4eaa48fea62}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{AMD Ryzen 9 9950X3D CPU Review and Benchmarks vs. 9800X3D, 285K, 9950X, and More}
+      \field{year}{2025}
+      \verb{urlraw}
+      \verb https://gamersnexus.net/cpus/amd-ryzen-9-9950x3d-cpu-review-benchmarks-vs-9800x3d-285k-9950x-more
+      \endverb
+      \verb{url}
+      \verb https://gamersnexus.net/cpus/amd-ryzen-9-9950x3d-cpu-review-benchmarks-vs-9800x3d-285k-9950x-more
+      \endverb
+      \warn{\item online entry '9950X3DBenchmarks' (ref.bib): Invalid format 'March 12, 2025' of date field 'date' - ignoring}
+    \endentry
+    \entry{CacheEnergyEstimation}{inproceedings}{}{}
+      \name{author}{4}{}{%
+        {{hash=dac9f28c6e698305638bcabe207500b2}{%
+           family={Barret},
+           familyi={B\bibinitperiod},
+           given={Gaëtan},
+           giveni={G\bibinitperiod}}}%
+        {{hash=fac2ee3e7992e7f8f24abc7a0944d4c2}{%
+           family={Penhoat},
+           familyi={P\bibinitperiod},
+           given={Joël},
+           giveni={J\bibinitperiod}}}%
+        {{hash=d39d5ea5ee0442cdbe0ee4bbc7d87687}{%
+           family={Picard},
+           familyi={P\bibinitperiod},
+           given={Roland},
+           giveni={R\bibinitperiod}}}%
+        {{hash=515bd28bb49a1b8b659920021149c8e4}{%
+           family={Chillet},
+           familyi={C\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+      }
+      \strng{namehash}{1525d49951a6366d2a86622ca9e9bdb2}
+      \strng{fullhash}{18d58607eb80aa159f4733176c90d52d}
+      \strng{fullhashraw}{18d58607eb80aa159f4733176c90d52d}
+      \strng{bibnamehash}{18d58607eb80aa159f4733176c90d52d}
+      \strng{authorbibnamehash}{18d58607eb80aa159f4733176c90d52d}
+      \strng{authornamehash}{1525d49951a6366d2a86622ca9e9bdb2}
+      \strng{authorfullhash}{18d58607eb80aa159f4733176c90d52d}
+      \strng{authorfullhashraw}{18d58607eb80aa159f4733176c90d52d}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{2025 14th Mediterranean Conference on Embedded Computing (MECO)}
+      \field{title}{Empirical Analysis and Estimation of the Energy Cost of Data Transfers in CPU Caches in Multi-Core Systems}
+      \field{year}{2025}
+      \field{pages}{1\bibrangedash 4}
+      \range{pages}{4}
+      \verb{doi}
+      \verb 10.1109/MECO66322.2025.11049192
+      \endverb
+      \keyw{Energy consumption;Power demand;Costs;Correlation;Estimation;Data transfer;Data models;Transistors;Monitoring;Stress;Energy Monitoring;CPU Caches;Data Transfers;Empirical study}
+    \endentry
+    \entry{IntelVsAMD}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=6f7ef53dd8d1fdb245da461547a30e19}{%
+           family={Salter},
+           familyi={S\bibinitperiod},
+           given={Jim},
+           giveni={J\bibinitperiod}}}%
+      }
+      \name{editor}{1}{}{%
+        {{hash=0f3010c48a1193956b5687fa409aeb47}{%
+           family={technica},
+           familyi={t\bibinitperiod},
+           given={Ars},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{6f7ef53dd8d1fdb245da461547a30e19}
+      \strng{fullhash}{6f7ef53dd8d1fdb245da461547a30e19}
+      \strng{fullhashraw}{6f7ef53dd8d1fdb245da461547a30e19}
+      \strng{bibnamehash}{6f7ef53dd8d1fdb245da461547a30e19}
+      \strng{authorbibnamehash}{6f7ef53dd8d1fdb245da461547a30e19}
+      \strng{authornamehash}{6f7ef53dd8d1fdb245da461547a30e19}
+      \strng{authorfullhash}{6f7ef53dd8d1fdb245da461547a30e19}
+      \strng{authorfullhashraw}{6f7ef53dd8d1fdb245da461547a30e19}
+      \strng{editorbibnamehash}{0f3010c48a1193956b5687fa409aeb47}
+      \strng{editornamehash}{0f3010c48a1193956b5687fa409aeb47}
+      \strng{editorfullhash}{0f3010c48a1193956b5687fa409aeb47}
+      \strng{editorfullhashraw}{0f3010c48a1193956b5687fa409aeb47}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{A history of Intel vs. AMD desktop performance, with CPU charts galore}
+      \field{year}{2020}
+      \verb{urlraw}
+      \verb https://arstechnica.com/gadgets/2020/11/a-history-of-intel-vs-amd-desktop-performance-with-cpu-charts-galore/
+      \endverb
+      \verb{url}
+      \verb https://arstechnica.com/gadgets/2020/11/a-history-of-intel-vs-amd-desktop-performance-with-cpu-charts-galore/
+      \endverb
+      \warn{\item online entry 'IntelVsAMD' (ref.bib): Invalid format 'November 17, 2020' of date field 'date' - ignoring}
+    \endentry
+    \entry{IntelbLLC}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=9188ba2c7f00a3189f1e2d9801e71343}{%
+           family={Nasir},
+           familyi={N\bibinitperiod},
+           given={Hassam},
+           giveni={H\bibinitperiod}}}%
+      }
+      \strng{namehash}{9188ba2c7f00a3189f1e2d9801e71343}
+      \strng{fullhash}{9188ba2c7f00a3189f1e2d9801e71343}
+      \strng{fullhashraw}{9188ba2c7f00a3189f1e2d9801e71343}
+      \strng{bibnamehash}{9188ba2c7f00a3189f1e2d9801e71343}
+      \strng{authorbibnamehash}{9188ba2c7f00a3189f1e2d9801e71343}
+      \strng{authornamehash}{9188ba2c7f00a3189f1e2d9801e71343}
+      \strng{authorfullhash}{9188ba2c7f00a3189f1e2d9801e71343}
+      \strng{authorfullhashraw}{9188ba2c7f00a3189f1e2d9801e71343}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Intel's next-gen Nova Lake will finally tackle AMD's Ryzen X3D, but only with pricey 'K' models — 144MB Big Last Level Cache response to 3D V-Cache will only come on unlocked desktop parts}
+      \field{year}{2025}
+      \verb{urlraw}
+      \verb https://www.tomshardware.com/pc-components/cpus/intels-next-gen-nova-lake-will-finally-tackle-amds-ryzen-x3d-but-only-with-pricey-k-models-144mb-big-last-level-cache-response-to-3d-v-cache-will-only-come-on-unlocked-desktop-parts
+      \endverb
+      \verb{url}
+      \verb https://www.tomshardware.com/pc-components/cpus/intels-next-gen-nova-lake-will-finally-tackle-amds-ryzen-x3d-but-only-with-pricey-k-models-144mb-big-last-level-cache-response-to-3d-v-cache-will-only-come-on-unlocked-desktop-parts
+      \endverb
+      \warn{\item online entry 'IntelbLLC' (ref.bib): Invalid format 'November 26, 2025' of date field 'date' - ignoring}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
