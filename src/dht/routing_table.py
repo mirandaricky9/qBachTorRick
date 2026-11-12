@@ -176,7 +176,6 @@ class RoutingTable:
         bucket = self.bucket_for(node_id)
         if bucket.probe_id == node_id:
             bucket.probe_id = None
-        return self.promote_backup(bucket)
 
     def report_failure(self, node_id: int):
         """Mark a node as failed and increase its failure counter.

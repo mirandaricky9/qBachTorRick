@@ -51,11 +51,16 @@ class RPCServer:
             "GET_PEERS": self._handle_get_peers,
         }
 
-    def response(self, transport: transport.UDPTransport, message: dict, addr: tuple):
+    def response(
+        self,
+        transport: transport.UDPTransport,
+        message: dict[str, t.Any],
+        addr: tuple[str, int],
+    ):
         """Handle an RPC request."""
         transport.send(self.__handle(message, addr), addr)
 
-    def __handle(self, request: dict, address: tuple):
+    def __handle(self, request: dict[str, t.Any], address: tuple[str, int]):
         """Handle RPC request."""
 
         response = netutils.get_message_template(
