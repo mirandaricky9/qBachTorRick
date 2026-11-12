@@ -81,7 +81,7 @@ def decode(data: bytes) -> dict:
     Returns
     -------
     dict
-        A valid message.
+        A valid common message.
 
     Raises
     ------
@@ -134,7 +134,7 @@ def get_message_template(kind: str, txid: str, sender_id: int):
 
     Raises
     ------
-    ValueError
+    ValueError, TypeError
         If any of the fields are invalid.
     """
 

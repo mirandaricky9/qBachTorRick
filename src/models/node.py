@@ -74,15 +74,18 @@ class NodeInfo:
 
     def to_dict(self):
         """Convert `NodeInfo` to a `dict` with `node_id` in hex form.
-    
+
         Returns
         -------
         dict
             A dictionary with `node_id` (hex form), `ip`, and `port` keys.
         """
-    
+
         return {
-            "node_id": id_to_hex(self.node_id), 
-            "ip": self.ip, 
+            "node_id": id_to_hex(self.node_id),
+            "ip": self.ip,
             "port": self.port,
         }
+
+    def __repr__(self) -> str:
+        return f"NodeInfo(node_id={id_to_hex(self.node_id)}, ip={self.ip}, port={self.port})"

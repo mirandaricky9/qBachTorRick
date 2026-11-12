@@ -17,7 +17,7 @@ class DHTConfig:
     """See KBuckets"""
 
     alpha: int = 3
-    """Number of concurrent FIND_NODES request."""
+    """Max number of concurrent `FIND_NODE` and `GET_PEERS` requests per lookup."""
 
     replicas: int = 2
     """Number of nodes a swarm need to register."""

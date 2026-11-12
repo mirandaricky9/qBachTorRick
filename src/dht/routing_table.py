@@ -19,7 +19,7 @@ class RoutingTable:
     Refresh
     -------
     As defined in BEP 5, if a bucket has no activity in 15 minutes, it is considered stale.
-    "Activity" is when a DHT node is added or answer to a PING or when a DHT node is promoted from backup to active.
+    "Activity" is when a DHT node is added or answer to a request/response or when a DHT node is promoted from backup to active.
     When a bucket is stale, it is refreshed by performing a node lookup for a random ID within the bucket range.
 
     This refreshing behavior is separate from DHT node idling, which checks whether the peer is alive.
@@ -51,7 +51,8 @@ class RoutingTable:
 
         Raises
         ------
-        TBA
+        ValueError
+            When `k` is non-positive or when `local_id` is invalid.
         """
 
         node.validate_id(local_id)
@@ -66,7 +67,7 @@ class RoutingTable:
         self.__idle_threshold = idle_threshold
 
         # Ordered list of buckets covering the entire ID space.
-        # Will split a bucket when it contains more than k nodes.
+        # A bucket split when 1. Insert to bucket but it's full 2. Bucket contains local ID.
         self.buckets = [kbucket.KBucket(0, node.ID_LIMIT, k, clock())]
 
     def bucket_for(self, node_id: int) -> kbucket.KBucket:
@@ -77,7 +78,8 @@ class RoutingTable:
 
     def add(self, info: node.NodeInfo):
         """Add a node to the routing table.
-        If it is added as a backup candidate, then return the oldest active peer for probing.
+        If it is added as a backup candidate and the bucket is not probing,
+        return the oldest active peer for probing.
 
         Parameters
         ----------
@@ -87,7 +89,8 @@ class RoutingTable:
         Returns
         -------
         node.NodeInfo, optional
-            If the node is added to the backup list, return the oldest active peer information.
+            If the node is added to the backup list and bucket is not probing,
+            return the oldest active peer information.
 
         Notes
         -----
@@ -144,7 +147,8 @@ class RoutingTable:
         Returns
         -------
         NodeInfo, optional
-            If the promotion is successful and the bucket is not in probing, return the promoted node to probe.
+            If the bucket is not probing anything and the to-be-promoted node is stale,
+            return the node for probing.
         """
 
         # This function is here instead of KBucket cuz of self.__clock()
@@ -167,7 +171,7 @@ class RoutingTable:
         return None
 
     def finish_probe(self, node_id: int):
-        """Unset the probe id for a bucket."""
+        """Unset the probe id for a bucket if it matches `node_id`."""
 
         bucket = self.bucket_for(node_id)
         if bucket.probe_id == node_id:
@@ -175,8 +179,11 @@ class RoutingTable:
         return self.promote_backup(bucket)
 
     def report_failure(self, node_id: int):
-        """When a PING fails for an active node, use this method to increase the internal counter.
-        If the counter for this node exceed `failure_limit`, it'll be removed and backup promotion happens.
+        """Mark a node as failed and increase its failure counter.
+        If the node is a backup node, it is removed instead.
+
+        If the counter for this active node reaches `failure_limit`, it will be removed.
+        Backup promotion then happens internally.
         """
 
         bucket = self.bucket_for(node_id)

@@ -60,7 +60,6 @@ class KBucket:
         self.last_refresh_attempt = now
         # Node ID to be probed (PING) as part of bucket refreshing and backup promotion.
         # Put it here cuz we're supposed to only probe for one node per bucket.
-        # Probably gonna be a lock for this.
         self.probe_id: int | None = None
 
     def can_contain(self, node_id: int) -> bool:
@@ -70,7 +69,7 @@ class KBucket:
         return len(self.active_nodes) >= self.__k
 
     def get_range(self):
-        """Return `[lower, upper]`."""
+        """Return `[lower, upper)`."""
         return (self.__lower, self.__upper)
 
     def add(self, record: NodeRecord):
@@ -88,6 +87,7 @@ class KBucket:
         ------
         ValueError
             Either the ID is outside the bucket range, or the bucket is full.
+            Happens on new insertion only.
         """
 
         node_id = record.info.node_id
@@ -153,3 +153,6 @@ class KBucket:
 
     def __repr__(self) -> str:
         return f"KBucket([{self.__lower}, {self.__upper}), active={self.active_nodes}, backup={self.backup_nodes})"
+
+    def __str__(self) -> str:
+        return f"KBucket([{self.__lower}, {self.__upper}), active={[node.info for node in self.active_nodes.values()]}, backup={len(self.backup_nodes)})"
