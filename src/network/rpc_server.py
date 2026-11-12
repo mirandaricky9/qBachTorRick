@@ -1,4 +1,5 @@
 import dataclasses
+import math
 import random
 import typing as t
 
@@ -112,11 +113,23 @@ class RPCServer:
             raise KeyError
 
         target = node.hex_to_id(params["target_id"])
-        return {
-            "nodes": [
-                info.to_dict() for info in self.__rtb.closest(target, self.__config.k)
-            ]
-        }
+        nodes = [info.to_dict() for info in self.__rtb.closest(target, self.__config.k)]
+
+        # Madeup way to reduce the result list.
+        # NOTE: Please change this if there's a better way.
+        while True:
+            try:
+                dummy_msg = netutils.get_message_template(
+                    "response", "0" * 32, self.__local_id
+                )
+                dummy_msg["result"] = {"nodes": nodes}
+                netutils.encode(dummy_msg)
+                break
+            except ValueError:
+                # Reduce by half is too steep.
+                nodes = nodes[: math.floor(len(nodes) / 1.25)]
+
+        return {"nodes": nodes}
 
     def _handle_announce(self, ctx: RPCRequestContext):
         sender = ctx.sender
@@ -134,17 +147,34 @@ class RPCServer:
 
         target = node.hex_to_id(params["swarm_id"])
         peers = self.__store.get(target)
+        nodes: list[dict] = []
+        field_name = ""
         if not peers:
-            return {
-                "nodes": [
-                    info.to_dict()
-                    for info in self.__rtb.closest(target, self.__config.k)
-                ]
-            }
-        random.shuffle(peers)
-        return {
-            "peers": [info.to_dict() for info in peers],
-        }
+            field_name = "nodes"
+            nodes = [
+                info.to_dict() for info in self.__rtb.closest(target, self.__config.k)
+            ]
+
+        else:
+            random.shuffle(peers)
+            field_name = "peers"
+            nodes = [info.to_dict() for info in peers]
+
+        # Madeup way to reduce the result list.
+        # NOTE: Please change this if there's a better way.
+        while True:
+            try:
+                dummy_msg = netutils.get_message_template(
+                    "response", "0" * 32, self.__local_id
+                )
+                dummy_msg["result"] = {"nodes": nodes}
+                netutils.encode(dummy_msg)
+                break
+            except ValueError:
+                # Reduce by half is too steep.
+                nodes = nodes[: math.floor(len(nodes) / 1.25)]
+
+        return {field_name: nodes}
 
     def __build_error(self, request: dict, code: str, message: str):
         response = netutils.get_message_template(
