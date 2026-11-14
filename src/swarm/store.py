@@ -2,13 +2,13 @@ import dataclasses
 import time
 import typing as t
 
-from src.models import node
+from src.models import node, peer
 
 
 @dataclasses.dataclass
 class SwarmRegistration:
     swarm_id: int
-    peer: node.NodeInfo
+    peer: peer.PeerInfo
     expires_at: float
 
 
@@ -35,22 +35,22 @@ class PeerRegistrationStore:
 
         self.__ttl = ttl
         self.__clock = clock
-        # {swarm_id: {peer_id: SwarmRegistration(), ...}, ...}
-        self.__registrations: dict[int, dict[int, SwarmRegistration]] = {}
+        # {swarm_id: {(ip, port): SwarmRegistration(), ...}, ...}
+        self.__registrations: dict[int, dict[tuple[str, int], SwarmRegistration]] = {}
 
-    def put(self, swarm_id: int, peer: node.NodeInfo):
+    def put(self, swarm_id: int, peer: peer.PeerInfo):
         """Register a peer as part of the swarm."""
 
         node.validate_id(swarm_id)
         peers = self.__registrations.setdefault(swarm_id, {})
-        peers[peer.node_id] = SwarmRegistration(
+        peers[(peer.ip, peer.port)] = SwarmRegistration(
             swarm_id,
             peer,
             self.__clock() + self.__ttl,
         )
 
     def get(self, swarm_id: int):
-        """Get a list of fresh peers for the swarm."""
+        """Get a list of fresh peers for a swarm."""
 
         node.validate_id(swarm_id)
         now = self.__clock()
@@ -62,7 +62,7 @@ class PeerRegistrationStore:
 
     def remove_expired(self):
         """Remove expired peers from swarm membership."""
-        
+
         now = self.__clock()
         # We're deleting stuff so iterator is not safe.
         for swarm_id, peers in list(self.__registrations.items()):

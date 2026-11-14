@@ -4,7 +4,7 @@ import typing as t
 
 from src import config
 from src.dht import routing_table
-from src.models import node
+from src.models import node, peer
 from src.network import rpc_client, transport
 
 _CANDIDATE_LIST_LIMIT = 256
@@ -62,7 +62,7 @@ class LookupService:
         # Mostly to write a warning when the search reach its limit.
         is_limited = False
         attempts = 0
-        peers: dict[int, node.NodeInfo] = {}
+        peers: dict[tuple[str, int], peer.PeerInfo] = {}
         parameter = "target_id" if method == "FIND_NODE" else "swarm_id"
 
         for info in self.__routing.closest(target_id, self.__config.k):
@@ -136,10 +136,10 @@ class LookupService:
                     responsive[node_id] = node_info
 
                     for entry in result.get("peers", []):
-                        peer = node.NodeInfo(**entry)
+                        info = peer.PeerInfo(**entry)
                         # Later duplicate entry might not be correct.
-                        if peer.node_id not in peers:
-                            peers[peer.node_id] = peer
+                        if (info.ip, info.port) not in peers:
+                            peers[(info.ip, info.port)] = info
 
                     for entry in result.get("nodes", []):
                         contact = node.NodeInfo(**entry)

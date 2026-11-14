@@ -160,11 +160,17 @@ class RPCClient:
                 if not isinstance(entry, dict):
                     raise TypeError("Contact must be an object")
 
-                contact = {
-                    "node_id": node.hex_to_id(entry.get("node_id")),
-                    "ip": entry.get("ip"),
-                    "port": entry.get("port"),
-                }
+                if key == "nodes":
+                    contact = {
+                        "node_id": node.hex_to_id(entry.get("node_id")),
+                        "ip": entry.get("ip"),
+                        "port": entry.get("port"),
+                    }
+                else:
+                    contact = {
+                        "ip": entry.get("ip"),
+                        "port": entry.get("port"),
+                    }
                 contacts.append(contact)
 
             result[key] = contacts

@@ -8,7 +8,7 @@ import typing as t
 
 from src import config
 from src.dht import lookup, routing_table
-from src.models import node
+from src.models import node, peer
 from src.network import netutils, rpc_client, rpc_server, transport
 from src.swarm import store
 
@@ -51,9 +51,8 @@ class DHTNode:
         # Keep track of the nodes we're probing/PINGing.
         self.__probes: set[int] = set()
 
-        # Keep track of the ID we're refreshing/reannouncing. A minor optimization.
+        # Keep track of the ID we're refreshing. A minor optimization.
         self.__refreshes: set[int] = set()
-        self.__reannouncing: set[int] = set()
         # Keep track of background tasks that are responsible for handling requests.
         self.__request_handlers: set[asyncio.Task[t.Any]] = set()
 
@@ -263,7 +262,6 @@ class DHTNode:
         self.__fg_tasks.clear()
         self.__probes.clear()
         self.__refreshes.clear()
-        self.__reannouncing.clear()
         self.__request_handlers.clear()
 
     def __require_running(self):
@@ -393,30 +391,12 @@ class DHTNode:
         finally:
             self.__refreshes.discard(target_id)
 
-    async def __reannounce(self, swarm_id: int):
-        try:
-            result = await self.__swarm.announce(
-                self.__protocol,
-                swarm_id,
-                self.__config.replicas,
-            )
-            if result.replicas_ack_count < result.expected_replicas_count:
-                LOGGER.info(
-                    "Swarm %s acknowledged by %d/%d requested replicas",
-                    node.id_to_hex(swarm_id),
-                    result.replicas_ack_count,
-                    result.expected_replicas_count,
-                )
-        finally:
-            self.__reannouncing.discard(swarm_id)
-
     async def __maintenance(self):
         """Run maintenance asynchronously.
 
         Maintenance include:
             - Remove expired swarm peers.
             - Fix routing table (probe if needed).
-            - Refresh swarm membership.
 
         Notes
         -----
@@ -467,16 +447,5 @@ class DHTNode:
                     if target not in self.__refreshes:
                         self.__spawn_task(self.__refresh(target))
 
-                # Swarm reannouncement.
-                for (
-                    swarm_id,
-                    last_announced,
-                ) in self.__swarm.swarm_last_announced.items():
-                    if (
-                        now - last_announced >= self.__config.reannounce_interval
-                        and swarm_id not in self.__reannouncing
-                    ):
-                        self.__reannouncing.add(swarm_id)
-                        self.__spawn_task(self.__reannounce(swarm_id))
             except Exception:
                 LOGGER.exception("Maintenance scan failed")

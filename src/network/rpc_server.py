@@ -5,7 +5,7 @@ import typing as t
 
 from src import config
 from src.dht import routing_table
-from src.models import node
+from src.models import node, peer
 from src.network import netutils, transport
 from src.swarm import store
 
@@ -142,7 +142,8 @@ class RPCServer:
         if params is None:
             raise KeyError
 
-        self.__store.put(node.hex_to_id(params["swarm_id"]), sender)
+        info = peer.PeerInfo(sender.ip, params["port"])
+        self.__store.put(node.hex_to_id(params["swarm_id"]), info)
         return {"ttl": self.__config.registration_ttl}
 
     def _handle_get_peers(self, ctx: RPCRequestContext):
@@ -163,7 +164,7 @@ class RPCServer:
         else:
             random.shuffle(peers)
             field_name = "peers"
-            nodes = [info.to_dict() for info in peers]
+            nodes = [dataclasses.asdict(info) for info in peers]
 
         # Madeup way to reduce the result list.
         # NOTE: Please change this if there's a better way.
@@ -172,7 +173,7 @@ class RPCServer:
                 dummy_msg = netutils.get_message_template(
                     "response", "0" * 32, self.__local_id
                 )
-                dummy_msg["result"] = {"nodes": nodes}
+                dummy_msg["result"] = {field_name: nodes}
                 netutils.encode(dummy_msg)
                 break
             except ValueError:
