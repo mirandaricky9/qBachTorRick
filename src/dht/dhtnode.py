@@ -6,7 +6,7 @@ import socket
 import time
 import typing as t
 
-from src import config
+from src import config, utils
 from src.dht import lookup, routing_table
 from src.models import node, peer
 from src.network import netutils, rpc_client, rpc_server, transport
@@ -101,7 +101,7 @@ class DHTNode:
 
     def get_routing_info(self) -> list[str]:
         """Return bucket descriptions (for debugging)."""
-        
+
         self.__require_running()
         return [str(bucket) for bucket in self.__rtb.buckets]
 
@@ -110,7 +110,7 @@ class DHTNode:
 
         This must be called before using any other DHT operations.
         """
-        
+
         if self.__running:
             raise RuntimeError("Node is already running")
 
@@ -127,7 +127,9 @@ class DHTNode:
             self.__config.failure_limit,
             self.__config.idle_threshold,
         )
-        self.__store = store.PeerRegistrationStore(self.__config.registration_ttl, self.__clock)
+        self.__store = store.PeerRegistrationStore(
+            self.__config.registration_ttl, self.__clock
+        )
 
         try:
             loop = asyncio.get_running_loop()
@@ -327,7 +329,7 @@ class DHTNode:
         await self.__lookup.find_nodes(self.__protocol, self.info.node_id)
 
     async def __get_peers(self, swarm_id: int) -> list[peer.PeerInfo]:
-        node.validate_id(swarm_id)
+        utils.validate_id(swarm_id)
         remote_peers = await self.__lookup.get_peers(self.__protocol, swarm_id)
         merged = {}
         for info in self.__store.get(swarm_id) + remote_peers:
@@ -336,7 +338,7 @@ class DHTNode:
         return list(merged.values())
 
     async def __announce(self, swarm_id: int, peer_port: int) -> SwarmAnnounceResult:
-        node.validate_id(swarm_id)
+        utils.validate_id(swarm_id)
 
         replica_candidates = await self.__lookup.find_nodes(self.__protocol, swarm_id)
         replica_candidates.append(self.info)
@@ -377,7 +379,7 @@ class DHTNode:
                 self.__protocol,
                 (info.ip, info.port),
                 "ANNOUNCE",
-                {"swarm_id": node.id_to_hex(swarm_id), "port": peer_port},
+                {"swarm_id": utils.id_to_hex(swarm_id), "port": peer_port},
                 info.node_id,
             )
             return result

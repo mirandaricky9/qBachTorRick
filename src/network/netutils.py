@@ -20,6 +20,7 @@ All messages have the following format:
 
 import json
 
+from src import utils
 from src.models import node
 
 MAX_DATAGRAM = 1200
@@ -37,7 +38,7 @@ def info_to_payload(info: node.NodeInfo) -> dict:
     """
 
     return {
-        "node_id": node.id_to_hex(info.node_id),
+        "node_id": utils.id_to_hex(info.node_id),
         "ip": info.ip,
         "port": info.port,
     }
@@ -110,7 +111,7 @@ def decode(data: bytes) -> dict:
     if not isinstance(sender_id, str):
         raise TypeError("Invalid sender ID type")
     # Validate sender_id further.
-    node.hex_to_id(sender_id)
+    utils.hex_to_id(sender_id)
 
     return message
 
@@ -147,5 +148,5 @@ def get_message_template(kind: str, txid: str, sender_id: int):
         "version": 1,
         "type": kind,
         "txid": txid,
-        "sender_id": node.id_to_hex(sender_id),
+        "sender_id": utils.id_to_hex(sender_id),
     }

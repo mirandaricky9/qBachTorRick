@@ -1,4 +1,5 @@
-from src.models import node, peer
+from src import utils
+from src.models import peer
 
 
 # TODO: Add more operations, like piece exchange.
@@ -19,7 +20,7 @@ class SwarmClient:
     def update_peers(self, swarm_id: int, peers: list[peer.PeerInfo]):
         """Update the list of peers for a swarm, deduplicate by endpoint."""
 
-        node.validate_id(swarm_id)
+        utils.validate_id(swarm_id)
         merged = {}
         for info in peers:
             if (info.ip, info.port) not in merged:
@@ -31,11 +32,11 @@ class SwarmClient:
         This reads from local cache (no networking involved).
         """
 
-        node.validate_id(swarm_id)
+        utils.validate_id(swarm_id)
         return list(self.__peers.get(swarm_id, []))
 
     def clear_swarm(self, swarm_id: int):
-        node.validate_id(swarm_id)
+        utils.validate_id(swarm_id)
         self.__peers.pop(swarm_id, None)
 
     def clear(self):

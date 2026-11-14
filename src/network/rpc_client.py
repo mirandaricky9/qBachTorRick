@@ -3,7 +3,7 @@ import dataclasses
 import secrets
 import typing as t
 
-from src import config
+from src import config, utils
 from src.models import node
 from src.network import netutils, transport
 
@@ -126,7 +126,7 @@ class RPCClient:
         ):
             return
 
-        sender_id = node.hex_to_id(message["sender_id"])
+        sender_id = utils.hex_to_id(message["sender_id"])
         if pending_req.receiver_id is not None and sender_id != pending_req.receiver_id:
             return
         if sender_id == self.__local_id:
@@ -162,7 +162,7 @@ class RPCClient:
 
                 if key == "nodes":
                     contact = {
-                        "node_id": node.hex_to_id(entry.get("node_id")),
+                        "node_id": utils.hex_to_id(entry.get("node_id")),
                         "ip": entry.get("ip"),
                         "port": entry.get("port"),
                     }

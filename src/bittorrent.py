@@ -3,8 +3,8 @@ import logging
 import time
 import typing as t
 
-import src.node
-from src import config
+from src import config, utils
+from src.dht import dhtnode
 from src.models import node, peer
 from src.swarm import client
 
@@ -38,7 +38,7 @@ class BitTorrentNode:
 
         # DHT is required in this project, but it's technically not required
         # in BitTorrent (cuz trackers) so we represent that decoupling like this.
-        self.__dht: src.node.DHTNode | None = None
+        self.__dht: dhtnode.DHTNode | None = None
 
         self.__is_running = False
         self.__is_stopping = False
@@ -53,7 +53,7 @@ class BitTorrentNode:
         # We also store the task since if we leave a swarm,
         # we need to cancel these tasks.
         self.__ongoing_announcement: dict[
-            int, asyncio.Task[src.node.SwarmAnnounceResult]
+            int, asyncio.Task[dhtnode.SwarmAnnounceResult]
         ] = {}
         self.__ongoing_get_peers: dict[int, asyncio.Task[list[peer.PeerInfo]]] = {}
 
@@ -85,14 +85,16 @@ class BitTorrentNode:
         if not self.__is_running:
             raise RuntimeError("BitTorrent node is not running.")
 
-    def __require_dht(self) -> src.node.DHTNode:
+    def __require_dht(self) -> dhtnode.DHTNode:
         self.__require_running()
         if self.__dht is None:
-            raise RuntimeError("DHT is not available. Did you forget to call 'join_dht()'?")
+            raise RuntimeError(
+                "DHT is not available. Did you forget to call 'join_dht()'?"
+            )
         return self.__dht
 
     def __require_swarm_not_leaving(self, swarm_id: int):
-        node.validate_id(swarm_id)
+        utils.validate_id(swarm_id)
         if swarm_id in self.__ongoing_leave:
             raise RuntimeError(f"Node is leaving swarm '{swarm_id}'")
 
@@ -135,7 +137,7 @@ class BitTorrentNode:
         self.__require_swarm_not_leaving(swarm_id)
         return await self.__start_get_peers(swarm_id)
 
-    async def announce(self, swarm_id: int) -> src.node.SwarmAnnounceResult:
+    async def announce(self, swarm_id: int) -> dhtnode.SwarmAnnounceResult:
         """Announce a torrent infohash to nodes (replicas) closest to its infohash.
 
         The number of nodes to announce to is in `DHTConfig.replicas`.
@@ -187,7 +189,7 @@ class BitTorrentNode:
                 await self.__dht.join(address)
             return
 
-        dht = src.node.DHTNode(self.__config, self.__clock)
+        dht = dhtnode.DHTNode(self.__config, self.__clock)
         try:
             await dht.start()
             if address is not None:
@@ -225,7 +227,7 @@ class BitTorrentNode:
             )
         return task
 
-    async def __announce(self, swarm_id: int) -> src.node.SwarmAnnounceResult:
+    async def __announce(self, swarm_id: int) -> dhtnode.SwarmAnnounceResult:
         try:
             result = await self.__require_dht().announce(
                 swarm_id, self.__swarm.peer_port

@@ -2,6 +2,7 @@ import random
 import time
 import typing as t
 
+from src import utils
 from src.dht import kbucket
 from src.models import node
 
@@ -55,7 +56,7 @@ class RoutingTable:
             When `k` is non-positive or when `local_id` is invalid.
         """
 
-        node.validate_id(local_id)
+        utils.validate_id(local_id)
         if k < 1:
             raise ValueError("k must be positive")
 
@@ -68,12 +69,12 @@ class RoutingTable:
 
         # Ordered list of buckets covering the entire ID space.
         # A bucket split when 1. Insert to bucket but it's full 2. Bucket contains local ID.
-        self.buckets = [kbucket.KBucket(0, node.ID_LIMIT, k, clock())]
+        self.buckets = [kbucket.KBucket(0, utils.ID_LIMIT, k, clock())]
 
     def bucket_for(self, node_id: int) -> kbucket.KBucket:
         """Return the bucket that can contain `node_id`."""
 
-        node.validate_id(node_id)
+        utils.validate_id(node_id)
         return next(bucket for bucket in self.buckets if bucket.can_contain(node_id))
 
     def add(self, info: node.NodeInfo):
@@ -205,7 +206,7 @@ class RoutingTable:
         return self.bucket_for(node_id).active_nodes.get(node_id)
 
     def closest(self, target_id: int, count: int) -> list[node.NodeInfo]:
-        node.validate_id(target_id)
+        utils.validate_id(target_id)
         return sorted(
             self.all_nodes(),
             key=lambda info: info.node_id ^ target_id,

@@ -2,7 +2,7 @@ import asyncio
 import logging
 import typing as t
 
-from src import config
+from src import config, utils
 from src.dht import routing_table
 from src.models import node, peer
 from src.network import rpc_client, transport
@@ -47,7 +47,7 @@ class LookupService:
         target_id: int,
         method: t.Literal["FIND_NODE", "GET_PEERS"],
     ):
-        node.validate_id(target_id)
+        utils.validate_id(target_id)
         queried_nodes: set[int] = set()
         # Keep track of nodes which response "negatively" to our request (error response, no response, etc.)
         failed_nodes: set[int] = set()
@@ -95,7 +95,7 @@ class LookupService:
                             transport,
                             (info.ip, info.port),
                             method,
-                            {parameter: node.id_to_hex(target_id)},
+                            {parameter: utils.id_to_hex(target_id)},
                             node_id,
                         )
                     )
@@ -171,7 +171,7 @@ class LookupService:
             if is_limited:
                 LOGGER.warning(
                     "Lookup %s reached a candidate or request limit",
-                    node.id_to_hex(target_id),
+                    utils.id_to_hex(target_id),
                 )
             contacts = sorted(
                 responsive.values(),

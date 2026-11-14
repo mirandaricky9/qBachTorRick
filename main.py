@@ -1,9 +1,9 @@
 import asyncio
 import secrets
 
+from src import utils
 from src.bittorrent import BitTorrentNode
 from src.config import DHTConfig
-from src.models import node
 
 
 async def main():
@@ -29,17 +29,17 @@ async def main():
 
     try:
         infohash = secrets.token_hex(32)
-        await nodes[1].announce(node.hex_to_id(infohash))
-        await nodes[5].announce(node.hex_to_id(infohash))
-        peers = await nodes[9].get_peers(node.hex_to_id(infohash))
+        await nodes[1].announce(utils.hex_to_id(infohash))
+        await nodes[5].announce(utils.hex_to_id(infohash))
+        peers = await nodes[9].get_peers(utils.hex_to_id(infohash))
         print(f"Peer for {infohash}: {peers}")
-        await nodes[1].leave(node.hex_to_id(infohash))
+        await nodes[1].leave(utils.hex_to_id(infohash))
         print("Node 1 left swarm. Waiting 18s to update...")
         await asyncio.sleep(18)
-        peers = await nodes[9].get_peers(node.hex_to_id(infohash))
+        peers = await nodes[9].get_peers(utils.hex_to_id(infohash))
         print(f"Peer for {infohash}: {peers}")
         await asyncio.sleep(2)
-        peers = await nodes[9].get_peers(node.hex_to_id(infohash))
+        peers = await nodes[9].get_peers(utils.hex_to_id(infohash))
         print(f"Peer for {infohash}: {peers}")
     except KeyboardInterrupt:
         pass

@@ -3,7 +3,7 @@ import math
 import random
 import typing as t
 
-from src import config
+from src import config, utils
 from src.dht import routing_table
 from src.models import node, peer
 from src.network import netutils, transport
@@ -73,7 +73,7 @@ class RPCServer:
         if not isinstance(method, str) or method not in self.__METHOD_HANDLERS:
             return self.__build_error(request, "method_unknown", "Unknown RPC method")
         try:
-            sender = node.NodeInfo(node.hex_to_id(request["sender_id"]), *address)
+            sender = node.NodeInfo(utils.hex_to_id(request["sender_id"]), *address)
             if sender.node_id == self.__local_id:
                 return self.__build_error(
                     request,
@@ -117,7 +117,7 @@ class RPCServer:
         if params is None:
             raise KeyError
 
-        target = node.hex_to_id(params["target_id"])
+        target = utils.hex_to_id(params["target_id"])
         nodes = [info.to_dict() for info in self.__rtb.closest(target, self.__config.k)]
 
         # Madeup way to reduce the result list.
@@ -143,7 +143,7 @@ class RPCServer:
             raise KeyError
 
         info = peer.PeerInfo(sender.ip, params["port"])
-        self.__store.put(node.hex_to_id(params["swarm_id"]), info)
+        self.__store.put(utils.hex_to_id(params["swarm_id"]), info)
         return {"ttl": self.__config.registration_ttl}
 
     def _handle_get_peers(self, ctx: RPCRequestContext):
@@ -151,7 +151,7 @@ class RPCServer:
         if params is None:
             raise KeyError
 
-        target = node.hex_to_id(params["swarm_id"])
+        target = utils.hex_to_id(params["swarm_id"])
         peers = self.__store.get(target)
         nodes: list[dict] = []
         field_name = ""

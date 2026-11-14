@@ -1,6 +1,7 @@
 import collections
 import dataclasses
 
+from src import utils
 from src.models import node
 
 
@@ -44,7 +45,7 @@ class KBucket:
             Invalid bucket range or capacity.
         """
 
-        if not 0 <= lower < upper <= node.ID_LIMIT or k < 1:
+        if not 0 <= lower < upper <= utils.ID_LIMIT or k < 1:
             raise ValueError("Invalid bucket range or capacity")
 
         self.__k = k

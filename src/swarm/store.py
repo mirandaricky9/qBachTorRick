@@ -2,7 +2,8 @@ import dataclasses
 import time
 import typing as t
 
-from src.models import node, peer
+from src import utils
+from src.models import peer
 
 
 @dataclasses.dataclass
@@ -41,7 +42,7 @@ class PeerRegistrationStore:
     def put(self, swarm_id: int, peer: peer.PeerInfo):
         """Register a peer as part of the swarm."""
 
-        node.validate_id(swarm_id)
+        utils.validate_id(swarm_id)
         peers = self.__registrations.setdefault(swarm_id, {})
         peers[(peer.ip, peer.port)] = SwarmRegistration(
             swarm_id,
@@ -52,7 +53,7 @@ class PeerRegistrationStore:
     def get(self, swarm_id: int):
         """Get a list of fresh peers for a swarm."""
 
-        node.validate_id(swarm_id)
+        utils.validate_id(swarm_id)
         now = self.__clock()
         return [
             record.peer
