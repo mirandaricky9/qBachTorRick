@@ -12,10 +12,17 @@ class SwarmRegistration:
     expires_at: float
 
 
-class SwarmStore:
-    """Store swarm peers.
+class PeerRegistrationStore:
+    """Store swarm announcements.
 
-    Three main operations: `put()`, `get()`, and `remove_expired()`.
+    When a peer announce a torrent/swarm, the system uses the torrent infohash/swarm ID to locate multiple DHT nodes to store this registration.
+    Later on, when someone wants to find this torrent, they will arrive at these nodes and see the announcement, thereby locating the peer.
+
+    A peer announcing the swarm ID essentially self-register it to the swarm.
+    To keep this status, on top of exchanging peer information within the swarm, it must periodically reannounce to the DHT using the same swarm ID.
+    If it fails to reannounce within the defined interval, the peer implies it left the swarm.
+
+    This class store these registrations and keep track whether they are fresh.
     """
 
     def __init__(

@@ -21,7 +21,7 @@ class RPCServer:
         self,
         local_id: int,
         rtb: routing_table.RoutingTable,
-        store: store.SwarmStore,
+        store: store.PeerRegistrationStore,
         config: config.DHTConfig,
         on_request: t.Callable[[node.NodeInfo], t.Any],
     ):

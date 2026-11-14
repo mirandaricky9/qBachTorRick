@@ -37,8 +37,8 @@ class DHTNode:
         # code down below will not complain about unknown method, which is way better.
         # Maybe there's a better way? Idk :/
         self.info: node.NodeInfo = None
-        self.rtb: routing_table.RoutingTable = None
-        self.__store: store.SwarmStore = None
+        self.__rtb: routing_table.RoutingTable = None
+        self.__store: store.PeerRegistrationStore = None
         self.__client: rpc_client.RPCClient = None
         self.__server: rpc_server.RPCServer = None
         self.__lookup: lookup.LookupService = None
@@ -100,6 +100,12 @@ class DHTNode:
         finally:
             self.__fg_tasks.discard(task)
 
+    def get_routing_info(self) -> list[str]:
+        """Return bucket descriptions (for debugging)."""
+        
+        self.__require_running()
+        return [str(bucket) for bucket in self.__rtb.buckets]
+
     async def start(self) -> None:
         if self.__running:
             raise RuntimeError("Node is already running")
@@ -110,14 +116,14 @@ class DHTNode:
             self.__config.advertise_ip,
             self.__config.port,
         )
-        self.rtb = routing_table.RoutingTable(
+        self.__rtb = routing_table.RoutingTable(
             node_id,
             self.__config.k,
             self.__clock,
             self.__config.failure_limit,
             self.__config.idle_threshold,
         )
-        self.__store = store.SwarmStore(self.__config.registration_ttl, self.__clock)
+        self.__store = store.PeerRegistrationStore(self.__config.registration_ttl, self.__clock)
 
         try:
             loop = asyncio.get_running_loop()
@@ -134,14 +140,14 @@ class DHTNode:
             )
             self.__server = rpc_server.RPCServer(
                 node_id,
-                self.rtb,
+                self.__rtb,
                 self.__store,
                 self.__config,
                 self.__on_valid_node_communication,
             )
             self.__lookup = lookup.LookupService(
                 node_id,
-                self.rtb,
+                self.__rtb,
                 self.__client,
                 self.__config,
             )
@@ -302,7 +308,7 @@ class DHTNode:
         The probe may target a different node than `info.node_id`. See `RoutingTable.add()` for more info.
         """
 
-        probe = self.rtb.add(info)
+        probe = self.__rtb.add(info)
         if probe is not None:
             self.__schedule_probe(probe)
 
@@ -315,7 +321,7 @@ class DHTNode:
         The probe may target a different node than `node_id`. See `RoutingTable.report_failure()` for more info.
         """
 
-        probe = self.rtb.report_failure(node_id)
+        probe = self.__rtb.report_failure(node_id)
         if probe is not None:
             self.__schedule_probe(probe)
 
@@ -329,12 +335,12 @@ class DHTNode:
             # There's an ongoing request for this node already,
             # so when there's a response, we can use that as liveness.
             # Therefore, don't probe.
-            bucket = self.rtb.bucket_for(info.node_id)
+            bucket = self.__rtb.bucket_for(info.node_id)
             if bucket.probe_id == info.node_id:
                 bucket.probe_id = None
             return
 
-        bucket = self.rtb.bucket_for(info.node_id)
+        bucket = self.__rtb.bucket_for(info.node_id)
         # Enforce one probe per bucket.
         # If the bucket already wants to probe someone else, we cancel our attempt.
         if bucket.probe_id is not None and bucket.probe_id != info.node_id:
@@ -361,11 +367,11 @@ class DHTNode:
             pass
         finally:
             self.__probes.discard(info.node_id)
-            self.rtb.finish_probe(info.node_id)
+            self.__rtb.finish_probe(info.node_id)
 
             # It could be that the PING happens in the middle of a backup promotion,
             # so we want to resume it.
-            next_probe = self.rtb.promote_backup(self.rtb.bucket_for(info.node_id))
+            next_probe = self.__rtb.promote_backup(self.__rtb.bucket_for(info.node_id))
             if next_probe is not None:
                 self.__schedule_probe(next_probe)
 
@@ -424,12 +430,12 @@ class DHTNode:
 
                 now = self.__clock()
                 # Bucket maintenance.
-                for bucket in self.rtb.buckets:
+                for bucket in self.__rtb.buckets:
                     if bucket.probe_id is not None:
                         continue
 
                     if not bucket.is_full() and bucket.backup_nodes:
-                        probe = self.rtb.promote_backup(bucket)
+                        probe = self.__rtb.promote_backup(bucket)
                         if probe is not None:
                             self.__schedule_probe(probe)
                             continue
@@ -455,7 +461,7 @@ class DHTNode:
                             self.__schedule_probe(idle_node.info)
 
                 # Bucket refreshing.
-                for target in self.rtb.get_refresh_targets(
+                for target in self.__rtb.get_refresh_targets(
                     self.__config.refresh_interval
                 ):
                     if target not in self.__refreshes:
