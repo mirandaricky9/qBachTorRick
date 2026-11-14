@@ -2,6 +2,8 @@ import dataclasses
 import ipaddress
 
 
+# Probably rename to Config later since it contains some swarm config.
+# Alternatively, separate those to SwarmConfig also works.
 @dataclasses.dataclass(frozen=True)
 class DHTConfig:
     advertise_ip: str
@@ -34,10 +36,12 @@ class DHTConfig:
     maintenance_interval: float = 10
     """How often background maintenance checks contacts."""
 
-    registration_ttl: float = 1800
+    # registration_ttl: float = 1800
+    registration_ttl: float = 20
     """How long a swarm entry remains valid without another announcement."""
 
-    reannounce_interval: float = 600
+    # reannounce_interval: float = 600
+    reannounce_interval: float = 15
     """How often this node re-announce its swarm membership. Must be smaller than `registration_ttl`."""
 
     refresh_interval: float = 900

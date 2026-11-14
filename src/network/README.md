@@ -72,7 +72,7 @@ Example request:
   "txid": "<32-char transaction ID>",
   "sender_id": "<64-char node hex ID>",
   "method": "FIND_NODE",
-  "params": {"target_id": "<64-char target ID>"},
+  "params": { "target_id": "<64-char target ID>" }
 }
 ```
 
@@ -90,7 +90,7 @@ Example response:
         "node_id": "<64-char node hex ID>",
         "ip": "127.0.0.1",
         "port": 6969
-      },
+      }
     ]
   }
 }
@@ -100,9 +100,37 @@ Example response:
 
 ### ANNOUNCE
 
-Register itself as a member of a swarm.
+Register a peer endpoint under a swarm ID.
 
-TBA
+Example request:
+
+```json
+{
+  "version": 1,
+  "type": "request",
+  "txid": "<32-char transaction ID>",
+  "sender_id": "<64-char node hex ID>",
+  "method": "ANNOUNCE",
+  "params": {
+    "swarm_id": "<64-char swarm ID>",
+    "port": 16969
+  }
+}
+```
+
+Example response:
+
+```json
+{
+  "version": 1,
+  "type": "response",
+  "txid": "same as request",
+  "sender_id": "<64-char node hex ID>",
+  "result": {
+    "ttl": 1800
+  }
+}
+```
 
 ### GET_PEERS
 
@@ -117,7 +145,7 @@ Example request:
   "txid": "<32-char transaction ID>",
   "sender_id": "<64-char node hex ID>",
   "method": "GET_PEERS",
-  "params": {"swarm_id": "<64-char target ID>"},
+  "params": { "swarm_id": "<64-char target ID>" }
 }
 ```
 
@@ -132,10 +160,9 @@ Example response if the node has the requested peers:
   "result": {
     "peers": [
       {
-        "node_id": "<64-char node hex ID>",
         "ip": "127.0.0.1",
-        "port": 6969
-      },
+        "port": 16881
+      }
     ]
   }
 }
@@ -155,7 +182,7 @@ If the node contains no peers, it'll return up to `k` closer DHT nodes, similar 
         "node_id": "<64-char node hex ID>",
         "ip": "127.0.0.1",
         "port": 6969
-      },
+      }
     ]
   }
 }

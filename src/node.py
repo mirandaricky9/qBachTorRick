@@ -106,6 +106,11 @@ class DHTNode:
         return [str(bucket) for bucket in self.__rtb.buckets]
 
     async def start(self) -> None:
+        """Open the DHT UDP socket and setup internal state.
+
+        This must be called before using any other DHT operations.
+        """
+        
         if self.__running:
             raise RuntimeError("Node is already running")
 
@@ -171,7 +176,7 @@ class DHTNode:
         # Wrap the join into one task so we can cancel if needed.
         await self.__run_task(self.__join(address))
 
-    async def find_nodes(self, target_id: int):
+    async def find_nodes(self, target_id: int) -> list[node.NodeInfo]:
         self.__require_running()
         return await self.__run_task(
             self.__lookup.find_nodes(
@@ -184,67 +189,9 @@ class DHTNode:
         self.__require_running()
         return await self.__run_task(self.__announce(swarm_id, peer_port))
 
-    async def __announce(self, swarm_id: int, peer_port: int) -> SwarmAnnounceResult:
-        node.validate_id(swarm_id)
-
-        replica_candidates = await self.__lookup.find_nodes(self.__protocol, swarm_id)
-        replica_candidates.append(self.info)
-        chosen_replicas = sorted(
-            replica_candidates,
-            key=lambda info: info.node_id ^ swarm_id,
-        )[: self.__config.replicas]
-
-        announce_ack_count = 0
-        if self.info in chosen_replicas:
-            self.__store.put(swarm_id, peer.PeerInfo(self.info.ip, peer_port))
-            announce_ack_count += 1
-        remote_replicas = [
-            info for info in chosen_replicas if info.node_id != self.info.node_id
-        ]
-        results = await asyncio.gather(
-            *(
-                self.__send_announce(info, swarm_id, peer_port)
-                for info in remote_replicas
-            )
-        )
-
-        failed = []
-        for info, result in zip(remote_replicas, results):
-            if result is None:
-                failed.append(info)
-        announce_ack_count += len(remote_replicas) - len(failed)
-
-        return SwarmAnnounceResult(
-            self.__config.replicas,
-            announce_ack_count,
-            failed,
-        )
-
-    async def __send_announce(self, info: node.NodeInfo, swarm_id: int, peer_port: int):
-        try:
-            _, result = await self.__client.request(
-                self.__protocol,
-                (info.ip, info.port),
-                "ANNOUNCE",
-                {"swarm_id": node.id_to_hex(swarm_id), "port": peer_port},
-                info.node_id,
-            )
-            return result
-        except (TimeoutError, OSError, ConnectionError, rpc_client.RPCError):
-            return None
-
     async def get_peers(self, swarm_id: int) -> list[peer.PeerInfo]:
         self.__require_running()
         return await self.__run_task(self.__get_peers(swarm_id))
-
-    async def __get_peers(self, swarm_id: int) -> list[peer.PeerInfo]:
-        node.validate_id(swarm_id)
-        remote_peers = await self.__lookup.get_peers(self.__protocol, swarm_id)
-        merged = {}
-        for info in self.__store.get(swarm_id) + remote_peers:
-            if (info.ip, info.port) not in merged:
-                merged[(info.ip, info.port)] = info
-        return list(merged.values())
 
     async def stop(self):
         self.__running = False
@@ -378,6 +325,64 @@ class DHTNode:
         # The responses from FIND_NODE is to populate the rtb
         # so we don't need the return result.
         await self.__lookup.find_nodes(self.__protocol, self.info.node_id)
+
+    async def __get_peers(self, swarm_id: int) -> list[peer.PeerInfo]:
+        node.validate_id(swarm_id)
+        remote_peers = await self.__lookup.get_peers(self.__protocol, swarm_id)
+        merged = {}
+        for info in self.__store.get(swarm_id) + remote_peers:
+            if (info.ip, info.port) not in merged:
+                merged[(info.ip, info.port)] = info
+        return list(merged.values())
+
+    async def __announce(self, swarm_id: int, peer_port: int) -> SwarmAnnounceResult:
+        node.validate_id(swarm_id)
+
+        replica_candidates = await self.__lookup.find_nodes(self.__protocol, swarm_id)
+        replica_candidates.append(self.info)
+        chosen_replicas = sorted(
+            replica_candidates,
+            key=lambda info: info.node_id ^ swarm_id,
+        )[: self.__config.replicas]
+
+        announce_ack_count = 0
+        if self.info in chosen_replicas:
+            self.__store.put(swarm_id, peer.PeerInfo(self.info.ip, peer_port))
+            announce_ack_count += 1
+        remote_replicas = [
+            info for info in chosen_replicas if info.node_id != self.info.node_id
+        ]
+        results = await asyncio.gather(
+            *(
+                self.__send_announce(info, swarm_id, peer_port)
+                for info in remote_replicas
+            )
+        )
+
+        failed = []
+        for info, result in zip(remote_replicas, results):
+            if result is None:
+                failed.append(info)
+        announce_ack_count += len(remote_replicas) - len(failed)
+
+        return SwarmAnnounceResult(
+            self.__config.replicas,
+            announce_ack_count,
+            failed,
+        )
+
+    async def __send_announce(self, info: node.NodeInfo, swarm_id: int, peer_port: int):
+        try:
+            _, result = await self.__client.request(
+                self.__protocol,
+                (info.ip, info.port),
+                "ANNOUNCE",
+                {"swarm_id": node.id_to_hex(swarm_id), "port": peer_port},
+                info.node_id,
+            )
+            return result
+        except (TimeoutError, OSError, ConnectionError, rpc_client.RPCError):
+            return None
 
     async def __refresh(self, target_id: int):
         """Refresh asynchronously using `target_id`.

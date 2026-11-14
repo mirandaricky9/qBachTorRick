@@ -1,34 +1,52 @@
-import src.dht.routing_table as rtb
+import asyncio
+import secrets
+
+from src.bittorrent import BitTorrentNode
+from src.config import DHTConfig
 from src.models import node
 
 
-def main():
-    nodes: list[node.NodeInfo] = []
-    routings: list[rtb.RoutingTable] = []
+async def main():
+    nodes: list[BitTorrentNode] = []
     for i in range(10):
         nodes.append(
-            node.NodeInfo(
-                node_id=i,
-                ip=f"127.0.0.{i}",
-                port=8000 + i,
+            BitTorrentNode(
+                config=DHTConfig(
+                    advertise_ip=f"127.0.0.{i + 1}",
+                    bind_ip=f"127.0.0.{i + 1}",
+                    port=6000 + i,
+                ),
+                peer_port=8000 + i,
             )
         )
-        routings.append(rtb.RoutingTable(local_id=i, k=2))
+        await nodes[i].start()
 
-    routings[0].add(nodes[1])
-    routings[0].add(nodes[2])
-    routings[0].add(nodes[5])
-    routings[0].add(nodes[9])
+    await nodes[0].join_dht()
 
-    print(routings[0].closest(target_id=3, count=2))
-    fake_node = node.NodeInfo(
-        node_id=10000,
-        ip="0.0.0.0",
-        port=15000,
-    )
-    routings[0].add(fake_node)
-    print([bucket for bucket in routings[0].buckets if bucket.active_nodes])
+    for i in range(1, 10):
+        # Join nodes[0]
+        await nodes[i].join_dht(("127.0.0.1", 6000))
+
+    try:
+        infohash = secrets.token_hex(32)
+        await nodes[1].announce(node.hex_to_id(infohash))
+        await nodes[5].announce(node.hex_to_id(infohash))
+        peers = await nodes[9].get_peers(node.hex_to_id(infohash))
+        print(f"Peer for {infohash}: {peers}")
+        await nodes[1].leave(node.hex_to_id(infohash))
+        print("Node 1 left swarm. Waiting 18s to update...")
+        await asyncio.sleep(18)
+        peers = await nodes[9].get_peers(node.hex_to_id(infohash))
+        print(f"Peer for {infohash}: {peers}")
+        await asyncio.sleep(2)
+        peers = await nodes[9].get_peers(node.hex_to_id(infohash))
+        print(f"Peer for {infohash}: {peers}")
+    except KeyboardInterrupt:
+        pass
+
+    for i in range(10):
+        await nodes[i].stop()
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
