@@ -52,3 +52,69 @@ class UDPTransport(asyncio.DatagramProtocol):
             # This initiate the closing, so we need to wait for it to be done.
             self.__transport.close()
             await self.__closed
+
+
+class TCPTransport:
+    """The underlying TCP stream.
+    Think of this as an equivalent to TCP "socket" but more convenient to use.
+    """
+
+    def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+        """Wrap an existing TCP stream.
+
+        This is used when TCP connection is made from external source (like when accepting an incoming handshake).
+        If you are the one initiating the connection, see `TCPTransport.connect()`.
+        """
+
+        self.__reader = reader
+        self.__writer = writer
+        self.__write_lock = asyncio.Lock()
+
+        # The address of the other end of the connection.
+        self.__address: tuple[str, int] = writer.get_extra_info("peername")
+
+    @classmethod
+    async def connect(cls, address: tuple[str, int]) -> t.Self:
+        """Create a TCP connection to the given address.
+
+        This is used when you are the one initiating the connection. If the connection is made externally,
+        see the default constructor.
+        """
+
+        reader, writer = await asyncio.open_connection(*address)
+        return cls(reader, writer)
+
+    @property
+    def peer_addr(self):
+        return self.__address
+
+    def is_closing(self) -> bool:
+        return self.__writer.is_closing()
+
+    async def receive(self) -> bytes:
+        """Read a message."""
+
+        size = int.from_bytes(await self.__reader.readexactly(4), "big")
+        return await self.__reader.readexactly(size)
+
+    async def send(self, data: bytes):
+        """Send a message over TCP."""
+
+        async with self.__write_lock:
+            if self.is_closing():
+                raise ConnectionError("TCP is already closing")
+
+            self.__writer.write(len(data).to_bytes(4, "big") + data)
+            await self.__writer.drain()
+
+    async def close(self):
+        """Close the socket and wait for cleanup."""
+
+        self.__writer.close()
+        try:
+            async with asyncio.timeout(1):
+                await self.__writer.wait_closed()
+        except TimeoutError:
+            self.__writer.transport.abort()
+        except OSError:
+            pass
