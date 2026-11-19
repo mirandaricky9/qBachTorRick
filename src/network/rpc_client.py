@@ -1,11 +1,14 @@
 import asyncio
 import dataclasses
+import logging
 import secrets
 import typing as t
 
 from src import config, utils
 from src.models import node
 from src.network import netutils, transport
+
+LOGGER = logging.getLogger(__name__)
 
 
 class RPCError(RuntimeError):
@@ -97,6 +100,7 @@ class RPCClient:
                 if receiver_id is not None:
                     self.__busy[receiver_id] = self.__busy.get(receiver_id, 0) + 1
 
+                LOGGER.debug("Sending: %s", message)
                 transport.send(netutils.encode(message), address)
                 return await asyncio.wait_for(future, self.__config.rpc_timeout)
             except (TimeoutError, OSError):

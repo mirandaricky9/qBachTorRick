@@ -5,3 +5,4 @@ latex_files_Final_Paper/out_dir
 latex_files_Project_Proposal/out_dir
 
 __pycache__/
+/*.json
