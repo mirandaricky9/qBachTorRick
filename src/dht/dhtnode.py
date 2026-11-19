@@ -231,6 +231,7 @@ class DHTNode:
 
         try:
             message = netutils.decode(data)
+            LOGGER.debug("Message: %s", message)
             if message["type"] != "request":
                 self.__client.receive(message, address)
             elif len(self.__request_handlers) < 64:
