@@ -2,8 +2,6 @@ import dataclasses
 import ipaddress
 
 
-# Probably rename to Config later since it contains some swarm config.
-# Alternatively, separate those to SwarmConfig also works.
 @dataclasses.dataclass(frozen=True)
 class DHTConfig:
     advertise_ip: str
@@ -64,3 +62,25 @@ class DHTConfig:
             raise ValueError(
                 "Reannounce interval must be shorter than registration TTL"
             )
+
+
+@dataclasses.dataclass(frozen=True)
+class PeerConfig:
+    handshake_timeout: float = 10
+    """Max number of seconds a peer handshake should last."""
+
+    # Should be at most half of receive_timeout.
+    heartbeat_interval: float = 30
+    """How often to send keep-alive message."""
+
+    # peer_timeout in libtorrent.
+    # This is similar to idle_threshold in DHTConfig.
+    receive_timeout: float = 90
+    """How long a connection should wait for any activity before closing it."""
+
+    maintenance_interval: float = 1
+    """How often maintenance checks should be run. Affect how fast we detect the above issues."""
+
+    def __post_init__(self):
+        if self.heartbeat_interval >= self.receive_timeout:
+            raise ValueError("Heartbeat interval shouldn't be larger than receive timeout.")

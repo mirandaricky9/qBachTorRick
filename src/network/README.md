@@ -1,6 +1,6 @@
-# Communication protocol
+# DHT Communication Protocol
 
-Describe the communication protocol used within DHT. This has nothing to do with peer communication (yet).
+Describe the communication protocol used within DHT.
 
 ## RPC
 

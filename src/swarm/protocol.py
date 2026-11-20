@@ -24,6 +24,13 @@ def get_handshake_msg(swarm_id: int, peer_id: int, port: int) -> dict[str, t.Any
     }
 
 
+def get_keep_alive_msg():
+    return {
+        "version": 1,
+        "type": "KEEP_ALIVE",
+    }
+
+
 def parse_peer_handshake(message: dict[str, t.Any]):
     """Parse a peer HANDSHAKE message to obtain IDs and port number.
 

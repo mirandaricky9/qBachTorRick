@@ -92,7 +92,9 @@ class TCPTransport:
         return self.__writer.is_closing()
 
     async def receive(self) -> bytes:
-        """Read a message."""
+        """Read a message.
+        This method will suspend until there is an incoming message.
+        """
 
         size = int.from_bytes(await self.__reader.readexactly(4), "big")
         return await self.__reader.readexactly(size)
