@@ -3,7 +3,16 @@ Utils to handle peer network messages.
 
 Message Structure
 -----------------
-TBA
+All messages have the following format:
+```json
+{
+    "version": 1,
+    "type": "MESSAGE_TYPE",
+    "other_fields": "..."
+}
+```
+
+Supported message types are: `HANDSHAKE`, `KEEP_ALIVE`, `BITFIELD`, `HAVE`, `REQUEST`, `PIECE`, `CANCEL`, and `PEX`.
 """
 
 import json

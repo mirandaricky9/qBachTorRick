@@ -16,7 +16,16 @@ Throughout this document, the term "connection" will refer to peer connection. T
 
 ## Peer Message Structure
 
-TBA
+All messages have the following structures (see `src/swarm/protocol.py` for accuracy):
+
+```json
+{
+  "version": 1,
+  "type": "MESSAGE_TYPE"
+}
+```
+
+See [Peer Messages](#peer-messages) for supported message types. Additional fields are required depending on `type`.
 
 ## Peer Messages
 

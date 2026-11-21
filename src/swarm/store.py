@@ -21,7 +21,7 @@ class PeerRegistrationStore:
 
     A peer announcing the swarm ID essentially self-register it to the swarm.
     To keep this status, on top of exchanging peer information within the swarm, it must periodically reannounce to the DHT using the same swarm ID.
-    If it fails to reannounce within the defined interval, the peer implies it left the swarm.
+    If it fails to reannounce within the defined interval, the peer is implied to not want to be discovered.
 
     This class store these registrations and keep track whether they are fresh.
     """
