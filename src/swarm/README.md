@@ -16,7 +16,7 @@ Throughout this document, the term "connection" will refer to peer connection. T
 
 ## Peer Message Structure
 
-All messages have the following structures (see `src/swarm/protocol.py` for accuracy):
+All messages have the following structures (see `src/swarm/peerutils.py` for accuracy):
 
 ```json
 {

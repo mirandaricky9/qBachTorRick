@@ -5,7 +5,7 @@ import typing as t
 from src import config
 from src.models import peer
 from src.network import transport
-from src.swarm import protocol
+from src.swarm import peerutils
 
 LOGGER = logging.getLogger(__name__)
 
@@ -158,7 +158,7 @@ class PeerConnection:
 
     async def __send(self, message: dict[str, t.Any]):
         async with asyncio.timeout(self.__config.receive_timeout):
-            await self.__transport.send(protocol.encode(message))
+            await self.__transport.send(peerutils.encode(message))
             LOGGER.debug("Peer Send: %s", message)
         self.__last_sent = self.__clock()
 
@@ -166,7 +166,7 @@ class PeerConnection:
         """Block until a message is received, then process it."""
 
         while True:
-            message = protocol.decode(await self.__transport.receive())
+            message = peerutils.decode(await self.__transport.receive())
 
             match message["type"]:
                 case "KEEP_ALIVE":
@@ -183,7 +183,7 @@ class PeerConnection:
             await asyncio.sleep(self.__config.maintenance_interval)
             now = self.__clock()
             if now - self.__last_sent >= self.__config.heartbeat_interval:
-                await self.__send(protocol.get_keep_alive_msg())
+                await self.__send(peerutils.get_keep_alive_msg())
 
     async def __monitor_timeout(self):
         """Monitor for connection timeout."""

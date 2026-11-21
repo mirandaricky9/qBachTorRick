@@ -7,7 +7,7 @@ import typing as t
 from src import config, utils
 from src.models import peer
 from src.network import transport
-from src.swarm import connection, protocol
+from src.swarm import connection, peerutils
 
 LOGGER = logging.getLogger(__name__)
 
@@ -280,9 +280,9 @@ class SwarmClient:
         is_conn_created = False
         try:
             async with asyncio.timeout(self.__config.handshake_timeout):
-                message = protocol.decode(await channel.receive())
+                message = peerutils.decode(await channel.receive())
                 # Peer want to joins swarm_id.
-                swarm_id, peer_id, peer_port = protocol.parse_peer_handshake(message)
+                swarm_id, peer_id, peer_port = peerutils.parse_peer_handshake(message)
                 peer_endpoint = peer.PeerInfo(channel.peer_addr[0], peer_port)
 
                 if peer_id == self.__peer_id:
@@ -299,8 +299,8 @@ class SwarmClient:
                 self.__pending_peer_handshakes[this_task] = swarm_id
 
                 await channel.send(
-                    protocol.encode(
-                        protocol.get_handshake_msg(
+                    peerutils.encode(
+                        peerutils.get_handshake_msg(
                             swarm_id,
                             self.__peer_id,
                             self.__peer_port,
@@ -352,16 +352,16 @@ class SwarmClient:
                     (endpoint.ip, endpoint.port)
                 )
                 await channel.send(
-                    protocol.encode(
-                        protocol.get_handshake_msg(
+                    peerutils.encode(
+                        peerutils.get_handshake_msg(
                             swarm_id,
                             self.__peer_id,
                             self.__peer_port,
                         )
                     )
                 )
-                message = protocol.decode(await channel.receive())
-                remote_swarm, peer_id, peer_port = protocol.parse_peer_handshake(
+                message = peerutils.decode(await channel.receive())
+                remote_swarm, peer_id, peer_port = peerutils.parse_peer_handshake(
                     message
                 )
 

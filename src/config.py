@@ -83,4 +83,6 @@ class PeerConfig:
 
     def __post_init__(self):
         if self.heartbeat_interval >= self.receive_timeout:
-            raise ValueError("Heartbeat interval shouldn't be larger than receive timeout.")
+            raise ValueError(
+                "Heartbeat interval shouldn't be larger than receive timeout."
+            )
