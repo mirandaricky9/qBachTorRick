@@ -18,6 +18,7 @@ class BitTorrentNode:
         self,
         config: config.DHTConfig,
         peer_port: int,
+        peer_config: config.PeerConfig,
         clock: t.Callable[[], float] = time.monotonic,
     ):
         """Construct a BitTorrent node to coordinate DHT and swarm.
@@ -30,11 +31,13 @@ class BitTorrentNode:
             The port for peer operations such as peer exchange, piece exchange, etc.
         clock : t.Callable[[], float]
             The clock to keep track of time.
+        peer_config : config.PeerConfig
+            Config for peer operations.
         """
 
         self.__config = config
         self.__clock = clock
-        self.__swarm = client.SwarmClient(peer_port)
+        self.__swarm = client.SwarmClient(peer_port, peer_config, clock)
 
         # DHT is required in this project, but it's technically not required
         # in BitTorrent (cuz trackers) so we represent that decoupling like this.
@@ -47,8 +50,9 @@ class BitTorrentNode:
         self.__tasks: set[asyncio.Task] = set()
 
         # Keep track of which swarms we're in and how long since we last announce.
-        # This is here instead of SwarmClient because we use it to announce, which involve DHT.
-        self.__swarm_memberships: dict[int, float] = {}
+        # This is different from SwarmClient.memberships because
+        # we don't have to announce to DHT when we're in a swarm.
+        self.__swarm_last_announce_attempts: dict[int, float] = {}
         # Keep track of ongoing announce_peer and get_peers.
         # We also store the task since if we leave a swarm,
         # we need to cancel these tasks.
@@ -78,6 +82,13 @@ class BitTorrentNode:
             raise RuntimeError("BitTorrent node is already running or stopping")
 
         self.__swarm.clear()
+        # By default, the client is ready to do peer operations, unlike DHT.
+        try:
+            await self.__swarm.start(self.__config.bind_ip)
+        except BaseException:
+            await self.__swarm.stop()
+            raise
+
         self.__is_running = True
         self.__spawn_task(self.__maintenance())
 
@@ -85,7 +96,7 @@ class BitTorrentNode:
         if not self.__is_running:
             raise RuntimeError("BitTorrent node is not running.")
 
-    def __require_dht(self) -> dhtnode.DHTNode:
+    def __require_dht(self):
         self.__require_running()
         if self.__dht is None:
             raise RuntimeError(
@@ -150,7 +161,29 @@ class BitTorrentNode:
 
         self.__require_dht()
         self.__require_swarm_not_leaving(swarm_id)
+        self.__swarm.join_swarm(swarm_id)
         return await self.__start_announcement(swarm_id)
+
+    async def connect_peer(self, swarm_id: int, endpoint: peer.PeerInfo):
+        """Join locally and establish a peer connection for a torrent infohash.
+
+        Connection failures leave local membership intact.
+
+        Parameters
+        ----------
+        swarm_id : int
+            The swarm ID to join.
+        endpoint : PeerInfo
+            The peer's endpoint. Could be obtained via `DHTNode.get_peers()`.
+
+        Returns
+        -------
+        PeerConnection
+            The resulting connection if the handshake succeeds.
+        """
+
+        self.__require_running()
+        return await self.__spawn_task(self.__swarm.connect_peer(swarm_id, endpoint))
 
     async def leave(self, swarm_id: int):
         """Quietly leave a swarm.
@@ -172,11 +205,11 @@ class BitTorrentNode:
                 task.cancel()
             await asyncio.gather(*self.__tasks, return_exceptions=True)
             self.__tasks.clear()
-            self.__swarm_memberships.clear()
+            await self.__swarm.stop()
+            self.__swarm_last_announce_attempts.clear()
             self.__ongoing_announcement.clear()
             self.__ongoing_get_peers.clear()
             self.__ongoing_leave.clear()
-            self.__swarm.clear()
             if self.__dht is not None:
                 await self.__dht.stop()
                 self.__dht = None
@@ -215,7 +248,7 @@ class BitTorrentNode:
     async def __get_peers(self, swarm_id: int) -> list[peer.PeerInfo]:
         peers = await self.__require_dht().get_peers(swarm_id)
         self.__swarm.update_peers(swarm_id, peers)
-        return self.__swarm.get_peers(swarm_id)
+        return self.__swarm.get_cached_peers(swarm_id)
 
     def __start_announcement(self, swarm_id: int):
         task = self.__ongoing_announcement.get(swarm_id)
@@ -233,17 +266,18 @@ class BitTorrentNode:
                 swarm_id, self.__swarm.peer_port
             )
             if result.replicas_ack_count > 0:
-                self.__swarm_memberships[swarm_id] = self.__clock()
+                self.__swarm_last_announce_attempts[swarm_id] = self.__clock()
             return result
         finally:
-            # Initial failures do not create membership. Established memberships
-            # survive failed refreshes, timed from completion of the last attempt.
-            if swarm_id in self.__swarm_memberships:
-                self.__swarm_memberships[swarm_id] = self.__clock()
+            # Even if we fail, we should keep track so we announce later.
+            # BitTorrent client typically don't reannounce immediately,
+            # only reannounce on intervals.
+            if swarm_id in self.__swarm_last_announce_attempts:
+                self.__swarm_last_announce_attempts[swarm_id] = self.__clock()
 
     async def __leave(self, swarm_id: int):
         self.__ongoing_leave.add(swarm_id)
-        self.__swarm_memberships.pop(swarm_id, None)
+        self.__swarm_last_announce_attempts.pop(swarm_id, None)
         tasks = []
         for operations in (self.__ongoing_announcement, self.__ongoing_get_peers):
             task = operations.get(swarm_id)
@@ -251,9 +285,9 @@ class BitTorrentNode:
                 task.cancel()
                 tasks.append(task)
         try:
+            await self.__swarm.leave(swarm_id)
             await asyncio.gather(*tasks, return_exceptions=True)
         finally:
-            self.__swarm.clear_swarm(swarm_id)
             self.__ongoing_leave.discard(swarm_id)
 
     def __on_swarm_reannounce_done(self, task):
@@ -276,7 +310,7 @@ class BitTorrentNode:
             now = self.__clock()
 
             # Swarm reannouncement.
-            for swarm_id, last_attempt in self.__swarm_memberships.items():
+            for swarm_id, last_attempt in self.__swarm_last_announce_attempts.items():
                 if (
                     now - last_attempt >= self.__config.reannounce_interval
                     and swarm_id not in self.__ongoing_announcement

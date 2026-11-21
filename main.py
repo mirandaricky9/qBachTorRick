@@ -5,7 +5,7 @@ import signal
 import sys
 
 from src.bittorrent import BitTorrentNode
-from src.config import DHTConfig
+from src.config import DHTConfig, PeerConfig
 
 LOGGER = logging.getLogger(__name__)
 
@@ -26,6 +26,7 @@ async def main(config_path: str):
             bootstrap=bootstrap,
         ),
         settings["peer_port"],
+        PeerConfig(),
     )
 
     # Properly handle SIGTERM.
