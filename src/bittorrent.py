@@ -68,7 +68,7 @@ class BitTorrentNode:
         return self.__swarm
 
     @property
-    def info(self) -> node.NodeInfo:
+    def dht(self) -> node.NodeInfo:
         return self.__require_dht().info
 
     def get_routing_info(self) -> list[str]:

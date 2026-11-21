@@ -22,6 +22,7 @@ async def main(config_path: str):
     node = BitTorrentNode(
         DHTConfig(
             advertise_ip=settings["advertise_ip"],
+            bind_ip=settings.get("bind_ip", "0.0.0.0"),
             port=settings["port"],
             bootstrap=bootstrap,
         ),
@@ -36,14 +37,16 @@ async def main(config_path: str):
 
     try:
         await node.start()
+        print(f"DHT ID: {node.dht.node_id}, peer ID: {node.swarm.peer_id}")
+
         # TODO: probably make this a CLI-like experience with commands.
         # For example, JOIN ip to join instead of relying on bootstrap.
         # Or GET_PEERS torrent_id to perform the lookup.
         await node.join_dht(bootstrap)
         LOGGER.info(
             "DHT running at %s:%d (peer port %d)",
-            node.info.ip,
-            node.info.port,
+            node.dht.ip,
+            node.dht.port,
             settings["peer_port"],
         )
         if bootstrap is not None:

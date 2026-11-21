@@ -159,7 +159,7 @@ class PeerConnection:
     async def __send(self, message: dict[str, t.Any]):
         async with asyncio.timeout(self.__config.receive_timeout):
             await self.__transport.send(protocol.encode(message))
-            LOGGER.debug("Message sent: %s", message)
+            LOGGER.debug("Peer Send: %s", message)
         self.__last_sent = self.__clock()
 
     async def __receive_loop(self):

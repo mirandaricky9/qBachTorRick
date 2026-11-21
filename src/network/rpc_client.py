@@ -100,7 +100,7 @@ class RPCClient:
                 if receiver_id is not None:
                     self.__busy[receiver_id] = self.__busy.get(receiver_id, 0) + 1
 
-                LOGGER.debug("Sending: %s", message)
+                LOGGER.debug("DHT Send: %s", message)
                 transport.send(netutils.encode(message), address)
                 return await asyncio.wait_for(future, self.__config.rpc_timeout)
             except (TimeoutError, OSError):

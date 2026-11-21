@@ -5,7 +5,7 @@ import secrets
 
 from src import utils
 from src.bittorrent import BitTorrentNode
-from src.config import DHTConfig
+from src.config import DHTConfig, PeerConfig
 
 
 async def main():
@@ -19,6 +19,7 @@ async def main():
                     port=6000 + i,
                 ),
                 peer_port=8000 + i,
+                peer_config=PeerConfig(),
             )
         )
         await nodes[i].start()
