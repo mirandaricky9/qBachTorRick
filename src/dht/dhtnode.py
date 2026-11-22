@@ -25,9 +25,13 @@ class SwarmAnnounceResult:
 class DHTNode:
     def __init__(
         self,
+        advertise_ip: str,
+        bind_ip: str,
         config: config.DHTConfig,
         clock: t.Callable[[], float] = time.monotonic,
     ):
+        self.__advertise_ip = advertise_ip
+        self.__bind_ip = bind_ip
         self.__config = config
         self.__clock = clock
 
@@ -117,7 +121,7 @@ class DHTNode:
         node_id = secrets.randbits(256)
         self.info = node.NodeInfo(
             node_id,
-            self.__config.advertise_ip,
+            self.__advertise_ip,
             self.__config.port,
         )
         self.__rtb = routing_table.RoutingTable(
@@ -135,7 +139,7 @@ class DHTNode:
             loop = asyncio.get_running_loop()
             _, self.__protocol = await loop.create_datagram_endpoint(
                 lambda: transport.UDPTransport(self.__receive_req),
-                local_addr=(self.__config.bind_ip, self.__config.port),
+                local_addr=(self.__bind_ip, self.__config.port),
                 family=socket.AF_INET,
             )
             self.__client = rpc_client.RPCClient(

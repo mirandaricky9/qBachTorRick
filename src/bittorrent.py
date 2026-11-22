@@ -16,8 +16,9 @@ class BitTorrentNode:
 
     def __init__(
         self,
+        advertise_ip: str,
+        bind_ip: str,
         config: config.DHTConfig,
-        peer_port: int,
         peer_config: config.PeerConfig,
         clock: t.Callable[[], float] = time.monotonic,
     ):
@@ -25,19 +26,24 @@ class BitTorrentNode:
 
         Parameters
         ----------
+        advertise_ip : str
+            Reachable IP address.
+        bind_ip : str
+            Which interface to listen.
         config : config.DHTConfig
             Config for BitTorrent.
-        peer_port : int
-            The port for peer operations such as peer exchange, piece exchange, etc.
         clock : t.Callable[[], float]
             The clock to keep track of time.
         peer_config : config.PeerConfig
             Config for peer operations.
         """
 
+        self.__advertise_ip = advertise_ip
+        self.__bind_ip = bind_ip
+
         self.__config = config
         self.__clock = clock
-        self.__swarm = client.SwarmClient(peer_port, peer_config, clock)
+        self.__swarm = client.SwarmClient(peer_config, clock)
 
         # DHT is required in this project, but it's technically not required
         # in BitTorrent (cuz trackers) so we represent that decoupling like this.
@@ -84,7 +90,7 @@ class BitTorrentNode:
         self.__swarm.clear()
         # By default, the client is ready to do peer operations, unlike DHT.
         try:
-            await self.__swarm.start(self.__config.bind_ip)
+            await self.__swarm.start(self.__bind_ip)
         except BaseException:
             await self.__swarm.stop()
             raise
@@ -222,7 +228,12 @@ class BitTorrentNode:
                 await self.__dht.join(address)
             return
 
-        dht = dhtnode.DHTNode(self.__config, self.__clock)
+        dht = dhtnode.DHTNode(
+            self.__advertise_ip,
+            self.__bind_ip,
+            self.__config,
+            self.__clock,
+        )
         try:
             await dht.start()
             if address is not None:

@@ -20,14 +20,13 @@ async def main(config_path: str):
         bootstrap = (bootstrap_ip, bootstrap_port)
 
     node = BitTorrentNode(
-        DHTConfig(
-            advertise_ip=settings["advertise_ip"],
-            bind_ip=settings.get("bind_ip", "0.0.0.0"),
+        advertise_ip=settings["advertise_ip"],
+        bind_ip=settings.get("bind_ip", "0.0.0.0"),
+        config=DHTConfig(
             port=settings["port"],
             bootstrap=bootstrap,
         ),
-        settings["peer_port"],
-        PeerConfig(),
+        peer_config=PeerConfig(port=settings["peer_port"]),
     )
 
     # Properly handle SIGTERM.

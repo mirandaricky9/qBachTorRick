@@ -1,14 +1,10 @@
 import dataclasses
-import ipaddress
 
 
 @dataclasses.dataclass(frozen=True)
 class DHTConfig:
-    advertise_ip: str
-    """Reachable IP address"""
-
     port: int = 6881
-    bind_ip: str = "0.0.0.0"
+    """UDP port for DHT operations."""
 
     bootstrap: tuple | None = None
     """Tuple of (IP, port) where it should contact for initial DHT node entry."""
@@ -46,16 +42,6 @@ class DHTConfig:
     """Bucket inactivity threshold before scheduling a random lookup. See `RoutingTable.get_refresh_targets()`."""
 
     def __post_init__(self):
-        if not isinstance(self.advertise_ip, str) or not isinstance(self.bind_ip, str):
-            raise TypeError("Addresses must be literal IPv4 strings")
-        ipaddress.IPv4Address(self.bind_ip)
-        advertised = ipaddress.IPv4Address(self.advertise_ip)
-        if (
-            advertised.is_unspecified
-            or advertised.is_multicast
-            or int(advertised) == 0xFFFFFFFF
-        ):
-            raise ValueError("'advertise_ip' must be a reachable unicast IPv4 address")
         if type(self.port) is not int or not 1 <= self.port <= 65535:
             raise ValueError("Invalid UDP port")
         if self.reannounce_interval >= self.registration_ttl:
@@ -66,6 +52,9 @@ class DHTConfig:
 
 @dataclasses.dataclass(frozen=True)
 class PeerConfig:
+    port: int = 9000
+    """TCP listening port for peer operations."""
+
     handshake_timeout: float = 10
     """Max number of seconds a peer handshake should last."""
 
@@ -88,6 +77,8 @@ class PeerConfig:
     """Maximum endpoints in each added or dropped PEX list."""
 
     def __post_init__(self):
+        if type(self.port) is not int or not 1 <= self.port <= 65535:
+            raise ValueError("Invalid TCP port")
         if self.heartbeat_interval >= self.receive_timeout:
             raise ValueError(
                 "Heartbeat interval shouldn't be larger than receive timeout."
