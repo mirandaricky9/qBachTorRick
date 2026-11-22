@@ -189,7 +189,13 @@ class BitTorrentNode:
         """
 
         self.__require_running()
-        return await self.__spawn_task(self.__swarm.connect_peer(swarm_id, endpoint))
+        return await self.__spawn_task(
+            self.__swarm.connect_peer(
+                swarm_id,
+                endpoint,
+                self.__bind_ip,
+            )
+        )
 
     async def leave(self, swarm_id: int):
         """Quietly leave a swarm.

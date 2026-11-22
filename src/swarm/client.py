@@ -20,11 +20,9 @@ class SwarmClient:
 
     def __init__(
         self,
-        peer_port: int,
         peer_config: config.PeerConfig,
         clock: t.Callable[[], float] = time.monotonic,
     ):
-        self.__peer_port = peer_port
         # BitTorrent uses a peer ID separate from DHT node ID.
         # Many clients also keep one peer ID throughout its lifetime.
         self.__peer_id = secrets.randbits(256)
@@ -54,7 +52,7 @@ class SwarmClient:
 
     @property
     def peer_port(self) -> int:
-        return self.__peer_port
+        return self.__config.port
 
     @property
     def peer_id(self) -> int:
@@ -112,7 +110,7 @@ class SwarmClient:
         self.__server = await asyncio.start_server(
             self.__accept_tcp_handshake,
             host=bind_ip,
-            port=self.__peer_port,
+            port=self.__config.port,
             start_serving=False,
         )
         try:
@@ -139,6 +137,7 @@ class SwarmClient:
         self,
         swarm_id: int,
         endpoint: peer.PeerInfo,
+        bind_ip: str,
     ) -> connection.PeerConnection:
         """Join locally and establish a peer connection for a torrent infohash.
 
@@ -150,6 +149,9 @@ class SwarmClient:
             The swarm ID to join.
         endpoint : PeerInfo
             The peer's endpoint. Could be obtained via `DHTNode.get_peers()`.
+        bind_ip : str
+            The IP address you bind to. This is to correctly identify IP address in some scenarios.
+            See notes in `TCPTransport.connect()` for more details.
 
         Returns
         -------
@@ -158,7 +160,7 @@ class SwarmClient:
         """
 
         self.join_swarm(swarm_id)
-        return await self.__run_task(self.__connect(swarm_id, endpoint))
+        return await self.__run_task(self.__connect(swarm_id, endpoint, bind_ip))
 
     def get_connections(self, swarm_id: int):
         """Return active peer connections for a swarm."""
@@ -329,7 +331,7 @@ class SwarmClient:
                         peerutils.get_handshake_msg(
                             swarm_id,
                             self.__peer_id,
-                            self.__peer_port,
+                            self.__config.port,
                         )
                     )
                 )
@@ -344,7 +346,7 @@ class SwarmClient:
             finally:
                 self.__pending_peer_handshakes.pop(this_task, None)
 
-    async def __connect(self, swarm_id: int, endpoint: peer.PeerInfo):
+    async def __connect(self, swarm_id: int, endpoint: peer.PeerInfo, bind_ip: str):
         """Establish a connection to a peer for a specific torrent infohash.
 
         Parameters
@@ -375,14 +377,14 @@ class SwarmClient:
         try:
             async with asyncio.timeout(self.__config.handshake_timeout):
                 channel = await transport.TCPTransport.connect(
-                    (endpoint.ip, endpoint.port)
+                    (endpoint.ip, endpoint.port), bind_ip
                 )
                 await channel.send(
                     peerutils.encode(
                         peerutils.get_handshake_msg(
                             swarm_id,
                             self.__peer_id,
-                            self.__peer_port,
+                            self.__config.port,
                         )
                     )
                 )

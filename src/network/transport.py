@@ -74,14 +74,22 @@ class TCPTransport:
         self.__address: tuple[str, int] = writer.get_extra_info("peername")
 
     @classmethod
-    async def connect(cls, address: tuple[str, int]) -> t.Self:
+    async def connect(cls, address: tuple[str, int], bind_ip: str) -> t.Self:
         """Create a TCP connection to the given address.
 
-        This is used when you are the one initiating the connection. If the connection is made externally,
-        see the default constructor.
+        This is used when you are the one initiating the connection. 
+        If the connection is made externally, see the default constructor.
+
+        Notes
+        -----
+        `bind_ip` is required in localhost cases, where if we use `127.0.0.3` to connect to `127.0.0.2`,
+        the OS will use `127.0.0.1` as the source IP, so `127.0.0.2` will see `127.0.0.1`.
         """
 
-        reader, writer = await asyncio.open_connection(*address)
+        reader, writer = await asyncio.open_connection(
+            *address,
+            local_addr=(bind_ip, 0),
+        )
         return cls(reader, writer)
 
     @property
