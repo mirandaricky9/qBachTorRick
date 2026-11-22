@@ -48,6 +48,7 @@ class SwarmClient:
         # This is different from tcp_handshakes cuz the TCP could fail
         # before we even get to the peer handshakes.
         self.__pending_peer_handshakes: dict[asyncio.Task[None], int] = {}
+
         self.__leaving: set[int] = set()
         self.__server: asyncio.Server | None = None
 
@@ -169,7 +170,9 @@ class SwarmClient:
         ]
 
     def update_peers(self, swarm_id: int, peers: list[peer.PeerInfo]):
-        """Update the list of peers for a swarm, deduplicate by endpoint."""
+        """Update peers discovered via DHT.
+        Do not use this to update peers discovered via PEX.
+        """
 
         utils.validate_id(swarm_id)
         merged = {}
@@ -179,12 +182,30 @@ class SwarmClient:
         self.__peers[swarm_id] = list(merged.values())
 
     def get_cached_peers(self, swarm_id: int):
-        """Return discovered peers from the local cache without networking."""
+        """Get discovered peers for a swarm from local cache.
+        This method doesn't perform networking calls.
+
+        Parameters
+        ----------
+        swarm_id : int
+            The swarm ID.
+
+        Returns
+        -------
+        list[PeerInfo]
+            A list of discovered peers (via DHT and PEX) for a swarm.
+        """
 
         utils.validate_id(swarm_id)
-        return list(self.__peers.get(swarm_id, []))
+        merged = dict.fromkeys(self.__peers.get(swarm_id, []))
+        for conn in self.get_connections(swarm_id):
+            for info in sorted(
+                conn.get_pex_peers(), key=lambda info: (info.ip, info.port)
+            ):
+                merged[info] = None
+        return list(merged)
 
-    # Should probably be private.
+    # Should probably be private. Not sure if it's gonna be useful or not...
     def clear_swarm(self, swarm_id: int):
         """Clear discovered peers for a swarm in the cache.
 
@@ -192,6 +213,9 @@ class SwarmClient:
         """
 
         self.__peers.pop(swarm_id, None)
+        for conn in self.__connections:
+            if conn.swarm_id == swarm_id:
+                conn.clear_pex_peers()
 
     def clear(self):
         """Clear all discovered peers.
@@ -200,6 +224,8 @@ class SwarmClient:
         """
 
         self.__peers.clear()
+        for conn in self.__connections:
+            conn.clear_pex_peers()
 
     async def leave(self, swarm_id: int):
         """Leave a torrent.
@@ -419,6 +445,7 @@ class SwarmClient:
             self.__config,
             self.__clock,
             self.__connections.discard,
+            self.get_connections,
         )
         self.__connections.add(conn)
         conn.start()

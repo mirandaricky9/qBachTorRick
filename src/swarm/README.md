@@ -53,7 +53,7 @@ A valid response will look similar to the request (with the peer's own `peer_id`
 
 Check activity with another peer on a connection.
 
-Example request:
+Example message:
 
 ```json
 {
@@ -62,4 +62,39 @@ Example request:
 }
 ```
 
-There are no response for this request. A peer decides a connection is alive when it *receives* a `KEEP_ALIVE` (or any other valid messages) within the interval defined in the config. *Just because a send succeeds doesn't mean the connection is alive*.
+There are no response for this message. A peer decides a connection is alive when it *receives* a `KEEP_ALIVE` (or any other valid messages) within the interval defined in the config. *Just because a send succeeds doesn't mean the connection is alive*.
+
+### PEX
+
+Report changes to established peer connections in the same swarm.
+
+A PEX message is sent only when there are changes since last PEX message. Therefore, if the peer topology (from a peer's perspective) is unchanged, it will not send a PEX message.
+
+Example message:
+
+```json
+{
+  "version": 1,
+  "type": "PEX",
+  "added": [["127.0.0.2", 9002]],
+  "dropped": [["127.0.0.3", 9003]]
+}
+```
+
+Both `added` and `dropped` are required, but they can be empty list.
+
+### BITFIELD
+
+Notify the receiver which pieces within the torrent it has.
+
+Example message:
+
+```json
+{
+  "version": 1,
+  "type": "BITFIELD",
+  "pieces": 2
+}
+```
+
+`pieces` is interpreted as a binary number, which indicate which piece it has.

@@ -12,15 +12,16 @@ All messages have the following format:
 }
 ```
 
-Supported message types are: `HANDSHAKE`, `KEEP_ALIVE`, `BITFIELD`, `HAVE`, `REQUEST`, `PIECE`, `CANCEL`, and `PEX`.
+Supported message types are: `HANDSHAKE`, `KEEP_ALIVE`, and `PEX`.
 """
 
 import json
 import typing as t
 
 from src import utils
+from src.models import peer
 
-VALID_PEER_MESSAGE_TYPES = ("HANDSHAKE", "KEEP_ALIVE")
+VALID_PEER_MESSAGE_TYPES = ("HANDSHAKE", "KEEP_ALIVE", "PEX")
 
 
 def get_handshake_msg(swarm_id: int, peer_id: int, port: int) -> dict[str, t.Any]:
@@ -37,6 +38,15 @@ def get_keep_alive_msg():
     return {
         "version": 1,
         "type": "KEEP_ALIVE",
+    }
+
+
+def get_pex_msg(added: list[peer.PeerInfo], dropped: list[peer.PeerInfo]):
+    return {
+        "version": 1,
+        "type": "PEX",
+        "added": [(info.ip, info.port) for info in added],
+        "dropped": [(info.ip, info.port) for info in dropped],
     }
 
 
@@ -67,6 +77,28 @@ def parse_peer_handshake(message: dict[str, t.Any]):
     peer_id = utils.hex_to_id(message["peer_id"])
     port = int(message["port"])
     return swarm_id, peer_id, port
+
+def parse_pex(message: dict[str, t.Any], max_entries: int):
+    """Return added and dropped endpoint sets."""
+
+    added = _parse_pex_endpoints(message["added"], max_entries)
+    dropped = _parse_pex_endpoints(message["dropped"], max_entries)
+    if added & dropped:
+        raise ValueError("PEX cannot add and drop the same endpoint")
+    return added, dropped
+
+
+def _parse_pex_endpoints(entries: list[tuple[str, int]], max_entries: int) -> set[peer.PeerInfo]:
+    if len(entries) > max_entries:
+        entries = entries[:max_entries]
+
+    endpoints = set()
+    for ip, port in entries:
+        info = peer.PeerInfo(ip, port)
+        if info in endpoints:
+            raise ValueError("Duplicate PEX endpoint")
+        endpoints.add(info)
+    return endpoints
 
 
 def encode(message: dict):

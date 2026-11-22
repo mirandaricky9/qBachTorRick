@@ -81,6 +81,12 @@ class PeerConfig:
     maintenance_interval: float = 1
     """How often maintenance checks should be run. Affect how fast we detect the above issues."""
 
+    pex_interval: float = 60
+    """How often to check for peer exchange updates."""
+
+    pex_max_entries: int = 50
+    """Maximum endpoints in each added or dropped PEX list."""
+
     def __post_init__(self):
         if self.heartbeat_interval >= self.receive_timeout:
             raise ValueError(

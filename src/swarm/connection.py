@@ -5,7 +5,7 @@ import typing as t
 from src import config
 from src.models import peer
 from src.network import transport
-from src.swarm import peerutils
+from src.swarm import peerutils, pex
 
 LOGGER = logging.getLogger(__name__)
 
@@ -27,6 +27,9 @@ class PeerConnection:
         config: config.PeerConfig,
         clock: t.Callable[[], float],
         on_close: t.Callable[[t.Self], None],
+        # This one has to be the class string cuz pyright isn't happy
+        # with t.Self ig :/ this is such a non-issue for python 3.14+
+        get_connections: t.Callable[[int], list["PeerConnection"]],
     ):
         """Construct a peer connection given an existing TCP connection.
 
@@ -49,6 +52,9 @@ class PeerConnection:
         on_close : t.Callable[[PeerConnection], None]
             A callback to run when the connection is closed.
             Suitable for cleaning up bookkeeping.
+        get_connections : t.Callable[[int], list[PeerConnection]]
+            A callback which, when invoked, return a list of active peer connections for a swarm.
+            This is used for peer exchange.
         """
 
         self.__transport = channel
@@ -66,6 +72,7 @@ class PeerConnection:
         self.__last_sent = self.__last_received
         self.__is_closed = False
         self.__maintenance_task: asyncio.Task | None = None
+        self.__pex_manager = pex.PEXManager(self, config, get_connections)
 
     @property
     def swarm_id(self) -> int:
@@ -96,6 +103,25 @@ class PeerConnection:
         if self.__maintenance_task is not None or self.__is_closed:
             raise RuntimeError("Peer connection already started or closed")
         self.__maintenance_task = asyncio.create_task(self.__run())
+        self.__pex_manager.start()
+
+    def get_pex_peers(self) -> set[peer.PeerInfo]:
+        """Return peers discovered through this connection's PEX manager."""
+
+        return self.__pex_manager.get_pex_peers()
+
+    def clear_pex_peers(self):
+        """Clear PEX discoveries while keeping the connection running."""
+
+        self.__pex_manager.clear()
+
+    async def send(self, message: dict[str, t.Any]):
+        """Send a peer message."""
+        
+        async with asyncio.timeout(self.__config.receive_timeout):
+            await self.__transport.send(peerutils.encode(message))
+            LOGGER.debug("Peer Send: %s", message)
+        self.__last_sent = self.__clock()
 
     async def close(self, close_transport: bool = True):
         """Unwrap the abstraction and close the underlying TCP transport (by default).
@@ -110,6 +136,7 @@ class PeerConnection:
 
         was_closed = self.__is_closed
         self.__is_closed = True
+        await self.__pex_manager.stop()
 
         # We have not started all the fancy monitoring.
         # We just need to close the TCP connection.
@@ -154,13 +181,8 @@ class PeerConnection:
             for task in workers:
                 task.cancel()
             await asyncio.gather(*workers, return_exceptions=True)
+            await self.__pex_manager.stop()
             await self.__transport_close()
-
-    async def __send(self, message: dict[str, t.Any]):
-        async with asyncio.timeout(self.__config.receive_timeout):
-            await self.__transport.send(peerutils.encode(message))
-            LOGGER.debug("Peer Send: %s", message)
-        self.__last_sent = self.__clock()
 
     async def __receive_loop(self):
         """Block until a message is received, then process it."""
@@ -171,6 +193,8 @@ class PeerConnection:
             match message["type"]:
                 case "KEEP_ALIVE":
                     pass
+                case "PEX":
+                    self.__pex_manager.on_pex_receive(message)
                 case _:
                     return
 
@@ -183,7 +207,7 @@ class PeerConnection:
             await asyncio.sleep(self.__config.maintenance_interval)
             now = self.__clock()
             if now - self.__last_sent >= self.__config.heartbeat_interval:
-                await self.__send(peerutils.get_keep_alive_msg())
+                await self.send(peerutils.get_keep_alive_msg())
 
     async def __monitor_timeout(self):
         """Monitor for connection timeout."""
