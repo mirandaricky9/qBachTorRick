@@ -75,6 +75,29 @@ class InfoDict:
     def info_hash(self) -> bytes:
         return hashlib.sha256(bencode.encode(self.to_dict())).digest()
 
+    @property
+    def total_length(self) -> int:
+        return sum(e.length for e in self.files)
+
+    @property
+    def num_pieces(self) -> int:
+        return len(self.pieces)
+
+    def piece_size(self, index: int) -> int:
+        '''
+        All pieces are identical sizes except the last piece.
+        
+        returns the size of the last piece'''
+        if index < 0 or index >= len(self.pieces):
+            raise IndexError("Index is out of range of files")
+
+        # if index is the last piece, compute and return last piece length,
+        # else return piece_length
+        if index == len(self.pieces) - 1:
+            return self.total_length - self.piece_length * index
+        else:
+            return self.piece_length
+
 
 
 
