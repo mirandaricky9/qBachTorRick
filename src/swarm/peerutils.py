@@ -15,6 +15,7 @@ All messages have the following format:
 Supported message types are: `HANDSHAKE`, `KEEP_ALIVE`, and `PEX`.
 """
 
+import binascii
 import json
 import base64
 import typing as t
@@ -129,25 +130,40 @@ def _parse_pex_endpoints(entries: list[tuple[str, int]], max_entries: int) -> se
 
 def parse_block_request(msg):
 
-    if msg["type"] not in ["REQUEST", "CANCEL"]:
+    if msg["type"] not in ("REQUEST", "CANCEL"):
         raise ValueError("Expected a REQUEST or CANCEL message.")
 
-    index = msg["index"]
-    begin = msg["begin"]
-    length = msg["length"]
+    index = _non_negative_int(msg, "index")
+    begin = _non_negative_int(msg, "begin")
+    length = _non_negative_int(msg, "length")
+
+    if length == 0:
+        raise ValueError("Block length must be positive")
 
     return index, begin, length
 
 def parse_piece(msg):
 
-    if msg[type] != "PIECE":
+    if msg["type"] != "PIECE":
         raise ValueError("Expected PIECE type.")
 
-    index = msg["index"]
-    begin = msg["begin"]
-    data = base64.b64decode(msg["block"])
+    index = _non_negative_int(msg, "index")
+    begin = _non_negative_int(msg, "begin")
+    try:
+        data = base64.b64decode(msg["block"], validate=True)
+    except binascii.Error as error:
+        raise ValueError(f"Invalid base64 in Piece: {error}") from None
 
     return index, begin, data
+
+
+def _non_negative_int(message, key):
+    value = message.get(key)
+
+    if type(value) is not int or value < 0:
+        raise ValueError(f"'{key}' must be a non-negative int")
+
+    return value
 
 def encode(message: dict):
     """Serialize a peer message as a UTF-8 JSON.
