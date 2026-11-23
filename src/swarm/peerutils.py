@@ -16,6 +16,7 @@ Supported message types are: `HANDSHAKE`, `KEEP_ALIVE`, and `PEX`.
 """
 
 import json
+import base64
 import typing as t
 
 from src import utils
@@ -49,6 +50,32 @@ def get_pex_msg(added: list[peer.PeerInfo], dropped: list[peer.PeerInfo]):
         "dropped": [(info.ip, info.port) for info in dropped],
     }
 
+def get_request_msg(index: int, begin: int, length: int):
+    return {
+        "version": 1,
+        "type": "REQUEST",
+        "index": index,
+        "begin": begin,
+        "length": length
+    }
+
+def get_piece_msg(index: int, begin: int, data: bytes):
+    return {
+        "version": 1,
+        "type": "PIECE",
+        "index": index,
+        "begin": begin,
+        "block": base64.b64encode(data).decode("ascii")
+    }
+
+def get_cancel_msg(index: int, begin: int, length: int):
+    return {
+        "version": 1,
+        "type": "CANCEL",
+        "index": index,
+        "begin": begin,
+        "length": length
+    }
 
 def parse_peer_handshake(message: dict[str, t.Any]):
     """Parse a peer HANDSHAKE message to obtain IDs and port number.
@@ -100,6 +127,11 @@ def _parse_pex_endpoints(entries: list[tuple[str, int]], max_entries: int) -> se
         endpoints.add(info)
     return endpoints
 
+def parse_block_request(msg):
+    pass
+
+def parse_piece(msg):
+    pass
 
 def encode(message: dict):
     """Serialize a peer message as a UTF-8 JSON.
