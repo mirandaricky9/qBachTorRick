@@ -12,12 +12,12 @@ All messages have the following format:
 }
 ```
 
-Supported message types are: `HANDSHAKE`, `KEEP_ALIVE`, and `PEX`.
+Supported message types are: `HANDSHAKE`, `KEEP_ALIVE`, `PEX`, `REQUEST`, `PIECE`, and `CANCEL`.
 """
 
+import base64
 import binascii
 import json
-import base64
 import typing as t
 
 from src import utils
@@ -57,7 +57,7 @@ def get_request_msg(index: int, begin: int, length: int):
         "type": "REQUEST",
         "index": index,
         "begin": begin,
-        "length": length
+        "length": length,
     }
 
 def get_piece_msg(index: int, begin: int, data: bytes):
@@ -66,7 +66,7 @@ def get_piece_msg(index: int, begin: int, data: bytes):
         "type": "PIECE",
         "index": index,
         "begin": begin,
-        "block": base64.b64encode(data).decode("ascii")
+        "block": base64.b64encode(data).decode("ascii"),
     }
 
 def get_cancel_msg(index: int, begin: int, length: int):
@@ -75,7 +75,7 @@ def get_cancel_msg(index: int, begin: int, length: int):
         "type": "CANCEL",
         "index": index,
         "begin": begin,
-        "length": length
+        "length": length,
     }
 
 def parse_peer_handshake(message: dict[str, t.Any]):
@@ -128,36 +128,40 @@ def _parse_pex_endpoints(entries: list[tuple[str, int]], max_entries: int) -> se
         endpoints.add(info)
     return endpoints
 
-def parse_block_request(msg):
+def parse_block_request(message: dict[str, t.Any]):
 
-    if msg["type"] not in ("REQUEST", "CANCEL"):
+    if message["type"] not in ("REQUEST", "CANCEL"):
         raise ValueError("Expected a REQUEST or CANCEL message.")
 
-    index = _non_negative_int(msg, "index")
-    begin = _non_negative_int(msg, "begin")
-    length = _non_negative_int(msg, "length")
+    index = _non_negative_int(message, "index")
+    begin = _non_negative_int(message, "begin")
+    length = _non_negative_int(message, "length")
 
     if length == 0:
         raise ValueError("Block length must be positive")
 
     return index, begin, length
 
-def parse_piece(msg):
+def parse_piece(message: dict[str, t.Any]):
 
-    if msg["type"] != "PIECE":
+    if message["type"] != "PIECE":
         raise ValueError("Expected PIECE type.")
 
-    index = _non_negative_int(msg, "index")
-    begin = _non_negative_int(msg, "begin")
+    index = _non_negative_int(message, "index")
+    begin = _non_negative_int(message, "begin")
+    block = message.get("block")
+    if not isinstance(block, str):
+        raise ValueError("PIECE block must be a base64 string") 
+
     try:
-        data = base64.b64decode(msg["block"], validate=True)
+        data = base64.b64decode(block, validate=True)
     except binascii.Error as error:
-        raise ValueError(f"Invalid base64 in Piece: {error}") from None
+        raise ValueError(f"Invalid base64 in PIECE: {error}") from None
 
     return index, begin, data
 
 
-def _non_negative_int(message, key):
+def _non_negative_int(message: dict[str, t.Any], key: str):
     value = message.get(key)
 
     if type(value) is not int or value < 0:
