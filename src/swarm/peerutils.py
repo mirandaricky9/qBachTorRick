@@ -128,10 +128,26 @@ def _parse_pex_endpoints(entries: list[tuple[str, int]], max_entries: int) -> se
     return endpoints
 
 def parse_block_request(msg):
-    pass
+
+    if msg["type"] not in ["REQUEST", "CANCEL"]:
+        raise ValueError("Expected a REQUEST or CANCEL message.")
+
+    index = msg["index"]
+    begin = msg["begin"]
+    length = msg["length"]
+
+    return index, begin, length
 
 def parse_piece(msg):
-    pass
+
+    if msg[type] != "PIECE":
+        raise ValueError("Expected PIECE type.")
+
+    index = msg["index"]
+    begin = msg["begin"]
+    data = base64.b64decode(msg["block"])
+
+    return index, begin, data
 
 def encode(message: dict):
     """Serialize a peer message as a UTF-8 JSON.
