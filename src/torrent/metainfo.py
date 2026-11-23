@@ -1,8 +1,8 @@
 # metainfo.py 
 # Contains the infrastructure to support creating torrents
 import dataclasses
-import time
 import hashlib
+import time
 from pathlib import Path
 
 from src.torrent import bencode
@@ -24,8 +24,6 @@ InfoDict class:
     - represents the info dictionary
     - This object will be hashed to return the infohash which can be used to verify file integrity
     - Same reason as above for freezing.
-
-    Parameters: 
 '''
 @dataclasses.dataclass(frozen=True)
 class InfoDict:
@@ -51,6 +49,28 @@ class InfoDict:
             d["private"] = 1
 
         return d
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        '''
+        undoes to_dict()
+        '''
+        name = d[b"name"].decode("utf-8")
+        raw = d[b"pieces"]
+
+        # Using 32 bytes for SHA-256
+        pieces = tuple(raw[i:i + 32] for i in range(0, len(raw), 32))
+
+        if b"length" in d:
+            single_file = True
+            files = (FileEntry((name,), d[b"length"]),)
+        else:
+            single_file = False
+            files = tuple(
+                FileEntry(tuple(p.decode("utf-8") for p in f[b"path"]), f[b"length"]) for f in d[b"files"]
+            )
+        return cls(name, d[b"piece length"], pieces, files, single_file, d.get(b"private", 0) == 1)
+
 
     def info_hash(self) -> bytes:
         return hashlib.sha256(bencode.encode(self.to_dict())).digest()
@@ -86,6 +106,20 @@ class Torrent:
         root = Path(path).expanduser()
         files = []
 
+        # helper function, hashes pieces across file boundaries
+        def _hash_pieces(files, piece_length):
+            pieces, buffer = [], bytearray()
+            for file_path in files:
+                with open(file_path, "rb") as f:
+                    while chunk := f.read(piece_length - len(buffer)):
+                        buffer += chunk
+                        if len(buffer) == piece_length:
+                            pieces.append(hashlib.sha256(buffer).digest())
+                            buffer.clear()
+            if buffer:
+                pieces.append(hashlib.sha256(buffer).digest())
+            return tuple(pieces)
+
         # need to handle single file vs a folder with files
         # Check by look at root
         if root.is_file():
@@ -98,7 +132,6 @@ class Torrent:
             name = root.name
 
             # rglob recursively finds a pattern in the current directory and subdirectories.
-            # Since we are torrenting either a
             for p in root.rglob("*"):
                 rel_parts = p.relative_to(root).parts
                 if p.is_file() and not any(part.startswith(".") for part in rel_parts):
@@ -106,29 +139,97 @@ class Torrent:
             files.sort()
 
             entries = tuple(FileEntry(p.relative_to(root).parts, p.stat().st_size) for p in files)
+            
         else:
             raise FileNotFoundError(root)
 
-        
+        # using a piece length of 16 KiB
+        if piece_length is None:
+            piece_length = 2**14
+
+        if sum(e.length for e in entries) == 0:
+            raise ValueError("Cannot create a torrent with no data (0 bytes)")
 
         # takes name, piece_length, and files from file_entry
-        info_dict = InfoDict()
-        torrent = Torrent()
+        info_dict = InfoDict(name=name,piece_length=piece_length, pieces=_hash_pieces(files, piece_length), files=entries, single_file=single_file,private=private)
+
+        torrent = cls(info=info_dict, announce_list=[[url] for url in trackers], nodes=list(nodes), creation_date=int(clock()))
+
         return torrent
 
+    def to_dict(self) -> dict:
+
+        d = {"info": self.info.to_dict(),}
+
+        if self.nodes:
+            d["nodes"] = self.nodes
+
+        if self.announce_list:
+            d["announce-list"] = self.announce_list
+
+        if self.creation_date is not None:
+            d["creation date"] = self.creation_date
+
+        if self.comment is not None:
+            d["comment"] = self.comment
+
+        if self.created_by is not None:
+            d["created by"] = self.created_by
+
+        return d
+    
+    def encode(self) -> bytes:
+        return bencode.encode(self.to_dict())
+
+    @classmethod
+    def from_bytes(cls, data: bytes) -> "Torrent":
+        d = bencode.decode(data)
+        return cls(
+            info=InfoDict.from_dict(d[b"info"]),
+            announce_list=[[u.decode("utf-8") for u in tier] for tier in d.get(b"announce-list", [])],
+            nodes=[(ip.decode("utf-8"), port) for ip, port in d.get(b"nodes", [])],
+            creation_date=d.get(b"creation date"),
+            comment=d[b"comment"].decode("utf-8") if b"comment" in d else None,
+            created_by=d[b"created by"].decode("utf-8") if b"created by" in d else None,
+        )
+
+    def save(self, path):
+        Path(path).expanduser().write_bytes(self.encode())
+
+    @classmethod
+    def load(cls, path) -> "Torrent":
+        return cls.from_bytes(Path(path).expanduser().read_bytes())
+
+    @property
+    def swarm_id(self) -> int:
+        return int.from_bytes(self.info.info_hash(), "big")
 
 
-# Test cases below: To be deleted
-path1 = '~/torrent_tests/test1'
-root = Path(path1).expanduser()
 
-files = []
-for p in root.rglob("*"):
-    rel_parts = p.relative_to(root).parts
-    print(rel_parts)
-    if p.is_file() and not any(part.startswith(".") for part in rel_parts):
-        files.append(p)
-files.sort()
+if __name__ == "__main__":
+    # Run this via `python -m src.torrent.metainfo` in main directory
+    # Ensure the path variables are created on your machine
+    # Test cases #1 
+    path1 = '~/torrent_tests/test1'
+    root = Path(path1).expanduser()
 
-print(root)
-print(files)
+    files = []
+    for p in root.rglob("*"):
+        rel_parts = p.relative_to(root).parts
+        print(rel_parts)
+        if p.is_file() and not any(part.startswith(".") for part in rel_parts):
+            files.append(p)
+    files.sort()
+
+    print(root)
+    print(files)
+
+    # Test case #2 
+    path2 = '~/torrent_tests/'
+    t = Torrent.from_path(path2)
+    t.save(path2 + "x.torrent")
+    assert Torrent.load(path2 + "x.torrent") == t
+    print("pieces:", len(t.info.pieces))
+    print("files:", [e.path for e in t.info.files])
+    print("swarm_id:", t.swarm_id.to_bytes(32, "big").hex())
+    print("round trip OK")
