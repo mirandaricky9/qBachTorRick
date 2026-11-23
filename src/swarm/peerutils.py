@@ -21,7 +21,7 @@ import typing as t
 from src import utils
 from src.models import peer
 
-VALID_PEER_MESSAGE_TYPES = ("HANDSHAKE", "KEEP_ALIVE", "PEX")
+VALID_PEER_MESSAGE_TYPES = ("HANDSHAKE", "KEEP_ALIVE", "PEX", "REQUEST", "PIECE", "CANCEL")
 
 
 def get_handshake_msg(swarm_id: int, peer_id: int, port: int) -> dict[str, t.Any]:
