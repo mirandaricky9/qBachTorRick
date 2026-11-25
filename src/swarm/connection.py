@@ -29,7 +29,9 @@ class PeerConnection:
         on_close: t.Callable[[t.Self], None],
         # This one has to be the class string cuz pyright isn't happy
         # with t.Self ig :/ this is such a non-issue for python 3.14+
-        get_connections: t.Callable[[int], list["PeerConnection"]],
+        get_connections: t.Callable[[], list["PeerConnection"]],
+        piece_count: int | None = None,
+        initial_local_pieces: int = 0,
     ):
         """Construct a peer connection given an existing TCP connection.
 
@@ -52,9 +54,14 @@ class PeerConnection:
         on_close : t.Callable[[PeerConnection], None]
             A callback to run when the connection is closed.
             Suitable for cleaning up bookkeeping.
-        get_connections : t.Callable[[int], list[PeerConnection]]
-            A callback which, when invoked, return a list of active peer connections for a swarm.
+        get_connections : t.Callable[[], list[PeerConnection]]
+            A callback returning active peer connections in this connection's swarm.
             This is used for peer exchange.
+        piece_count : int | None
+            How many pieces for this torrent.
+        initial_local_pieces : int
+            The local bitmap when this connection is created.
+            This is used for `BITFIELD` message.
         """
 
         self.__transport = channel
@@ -66,6 +73,17 @@ class PeerConnection:
         self.__clock = clock
         self.__on_close = on_close
 
+        self.__piece_count = piece_count
+        # This is gonna change later but for now keep it like this.
+        self.__initial_local_pieces = initial_local_pieces
+        self.__remote_pieces = 0 if piece_count is not None else None
+
+        # Slightly misleading name, but otherwise the name would be long.
+        # Did we attempt to send a BITFIELD.
+        self.__is_bitfield_sent = False
+        # Lock cuz is_bitfield_sent is critical region.
+        self.__send_bitfield_lock = asyncio.Lock()
+
         # For timeout.
         self.__last_received = clock()
         # For heartbeating.
@@ -73,6 +91,10 @@ class PeerConnection:
         self.__is_closed = False
         self.__maintenance_task: asyncio.Task | None = None
         self.__pex_manager = pex.PEXManager(self, config, get_connections)
+
+        # We don't have any pieces, so we're not going to send bitfield.
+        if self.__initial_local_pieces == 0:
+            self.__is_bitfield_sent = True
 
     @property
     def swarm_id(self) -> int:
@@ -103,7 +125,6 @@ class PeerConnection:
         if self.__maintenance_task is not None or self.__is_closed:
             raise RuntimeError("Peer connection already started or closed")
         self.__maintenance_task = asyncio.create_task(self.__run())
-        self.__pex_manager.start()
 
     def get_pex_peers(self) -> set[peer.PeerInfo]:
         """Return peers discovered through this connection's PEX manager."""
@@ -116,8 +137,41 @@ class PeerConnection:
         self.__pex_manager.clear()
 
     async def send(self, message: dict[str, t.Any]):
-        """Send a peer message."""
-        
+        """Send a peer message.
+
+        Notes
+        -----
+        This method will check if the BITFIELD message has been attempted.
+        If it didn't, the message will be sent after the BITFIELD is sent.
+        """
+
+        async with self.__send_bitfield_lock:
+            if not self.__is_bitfield_sent:
+                await self.__send_initial_bitfield()
+
+        await self.__send_message(message)
+
+    async def __send_initial_bitfield(self):
+        """Attempt to send a `BITFIELD` message.
+        Depending on the local state, it may or may not send one.
+
+        `BITFIELD` is typically sent as the first message after a peer handshake.
+        It is not sent if the peer has no available pieces (all 0s in the bitmap).
+
+        """
+
+        if (
+            self.__piece_count is None
+            or self.__is_bitfield_sent
+            or self.__initial_local_pieces == 0
+        ):
+            return
+        await self.__send_message(
+            peerutils.get_bitfield_msg(self.__initial_local_pieces)
+        )
+        self.__is_bitfield_sent = True
+
+    async def __send_message(self, message: dict[str, t.Any]):
         async with asyncio.timeout(self.__config.receive_timeout):
             await self.__transport.send(peerutils.encode(message))
             LOGGER.debug("Peer Send: %s", message)
@@ -166,14 +220,18 @@ class PeerConnection:
             self.__on_close(self)
 
     async def __run(self):
-        workers = [
-            asyncio.create_task(self.__receive_loop()),
-            asyncio.create_task(self.__heartbeat_loop()),
-            asyncio.create_task(self.__monitor_timeout()),
-        ]
+        workers: list[asyncio.Task[t.Any]] = []
         try:
+            async with self.__send_bitfield_lock:
+                await self.__send_initial_bitfield()
+            self.__pex_manager.start()
+            workers = [
+                asyncio.create_task(self.__receive_loop()),
+                asyncio.create_task(self.__heartbeat_loop()),
+                asyncio.create_task(self.__monitor_timeout()),
+            ]
             await asyncio.gather(*workers)
-        except (OSError, EOFError, ValueError, TimeoutError) as error:
+        except (OSError, EOFError, ValueError, TypeError, TimeoutError) as error:
             LOGGER.debug("Peer connection closed: %s", error)
         finally:
             self.__is_closed = True
@@ -187,6 +245,7 @@ class PeerConnection:
     async def __receive_loop(self):
         """Block until a message is received, then process it."""
 
+        is_first_message = True
         while True:
             message = peerutils.decode(await self.__transport.receive())
 
@@ -195,9 +254,14 @@ class PeerConnection:
                     pass
                 case "PEX":
                     self.__pex_manager.on_pex_receive(message)
+                case "BITFIELD":
+                    self._handle_bitfield_msg(message, is_first_message)
+                case "HAVE":
+                    self._handle_have_msg(message)
                 case _:
                     return
 
+            is_first_message = False
             self.__last_received = self.__clock()
 
     async def __heartbeat_loop(self):
@@ -216,3 +280,18 @@ class PeerConnection:
             await asyncio.sleep(self.__config.maintenance_interval)
             if self.__clock() - self.__last_received >= self.__config.receive_timeout:
                 raise TimeoutError("Peer timeout")
+
+    # TODO: Having to pass is_first_msg is ugly, is there a better way?
+    def _handle_bitfield_msg(self, message: dict[str, t.Any], is_first_msg: bool):
+        if self.__piece_count is None:
+            raise ValueError("BITFIELD requires registered torrent metadata")
+        if not is_first_msg:
+            raise ValueError("BITFIELD must be the first peer message")
+        self.__remote_pieces = peerutils.parse_bitfield(message, self.__piece_count)
+
+    def _handle_have_msg(self, message: dict[str, t.Any]):
+        if self.__piece_count is None:
+            raise ValueError("HAVE requires registered torrent metadata")
+        index = peerutils.parse_have(message, self.__piece_count)
+        assert self.__remote_pieces is not None
+        self.__remote_pieces |= 1 << index
