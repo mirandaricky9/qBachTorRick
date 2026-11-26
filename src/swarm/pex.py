@@ -24,7 +24,7 @@ class PEXManager:
         self,
         conn: "connection.PeerConnection",
         peer_config: config.PeerConfig,
-        get_connections: t.Callable[[int], list["connection.PeerConnection"]],
+        get_connections: t.Callable[[], list["connection.PeerConnection"]],
     ):
         """
         Construct a PEXManager.
@@ -35,11 +35,12 @@ class PEXManager:
             The connection between two peers.
         peer_config : PeerConfig
             Config for peer operations.
-        get_connections : t.Callable[[int], list[PeerConnection]]
-            A callback which, when invoked, return a list of active peer connections for a swarm.
+        get_connections : t.Callable[[], list[PeerConnection]]
+            A callback returning active peer connections in this connection's swarm.
         """
 
         self.__connection = conn
+        self.__swarm_id = conn.swarm_id
         self.__config = peer_config
         self.__get_connections = get_connections
 
@@ -113,7 +114,7 @@ class PEXManager:
                 await asyncio.sleep(self.__config.pex_interval)
 
                 # Get all connections that don't include the one we're talking to.
-                connections = self.__get_connections(conn.swarm_id)
+                connections = self.__get_connections()
                 current_pex_peers: set[peer.PeerInfo] = set()
                 for c in connections:
                     if (
