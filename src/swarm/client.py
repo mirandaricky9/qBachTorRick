@@ -188,7 +188,7 @@ class SwarmClient:
         torrent : Torrent
             The torrent object.
         data_path : str | Path, optional
-            The path to the torrent's payload, default to `$PROJECT_DIR/data/<torrent.name>`.
+            The path to the torrent's payload, default to `PeerConfig.data_dir/<torrent.name>`.
 
         Returns
         -------
@@ -380,7 +380,12 @@ class SwarmClient:
         await self.__server.start_serving()
 
     async def __load_existing_torrents(self):
-        for path in await asyncio.to_thread(store.get_torrent_paths):
+        paths = await asyncio.to_thread(
+            store.get_torrent_paths,
+            self.__config.torrents_dir,
+            self.__config.data_dir,
+        )
+        for path in paths:
             torrent = await asyncio.to_thread(metainfo.Torrent.load, path)
             await self.__register_torrent(torrent, persist=False)
 
@@ -424,6 +429,8 @@ class SwarmClient:
                 torrent,
                 data_path,
                 persist,
+                torrents_dir=self.__config.torrents_dir,
+                data_dir=self.__config.data_dir,
             )
             self.__torrents[swarm_id] = record
             self.__memberships.add(swarm_id)
@@ -608,7 +615,9 @@ class SwarmClient:
         record = self.__torrents.get(swarm_id)
         # Temporarily not allow metadata-free manager.
         if record is None:
-            raise RuntimeError("Torrent needs to be added before creating the corresponding manager.")
+            raise RuntimeError(
+                "Torrent needs to be added before creating the corresponding manager."
+            )
 
         swarm = manager.SwarmManager(
             swarm_id,

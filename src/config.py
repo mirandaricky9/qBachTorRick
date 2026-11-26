@@ -1,4 +1,5 @@
 import dataclasses
+import pathlib
 
 
 @dataclasses.dataclass(frozen=True)
@@ -75,6 +76,14 @@ class PeerConfig:
 
     pex_max_entries: int = 50
     """Maximum endpoints in each added or dropped PEX list."""
+
+    torrents_dir: str | pathlib.Path = (
+        pathlib.Path(__file__).resolve().parents[1] / "torrents"
+    )
+    """Where to load and save .torrent metadata files by default."""
+
+    data_dir: str | pathlib.Path = pathlib.Path(__file__).resolve().parents[1] / "data"
+    """Where to look for torrent content by default."""
 
     def __post_init__(self):
         if type(self.port) is not int or not 1 <= self.port <= 65535:

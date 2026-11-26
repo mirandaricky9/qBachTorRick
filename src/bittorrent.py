@@ -211,7 +211,7 @@ class BitTorrentNode:
         torrent : Torrent
             The torrent object.
         data_path : str | Path, optional
-            The path to the torrent's payload, default to `$PROJECT_DIR/data/<torrent.name>`.
+            The path to the torrent's payload, default to `PeerConfig.data_dir/<torrent.name>`.
 
         Returns
         -------
