@@ -19,6 +19,7 @@ async def main(config_path: str):
         bootstrap_ip, bootstrap_port = settings["bootstrap"]
         bootstrap = (bootstrap_ip, bootstrap_port)
 
+    peer_defaults = PeerConfig()
     node = BitTorrentNode(
         advertise_ip=settings["advertise_ip"],
         bind_ip=settings.get("bind_ip", "0.0.0.0"),
@@ -26,7 +27,11 @@ async def main(config_path: str):
             port=settings["port"],
             bootstrap=bootstrap,
         ),
-        peer_config=PeerConfig(port=settings["peer_port"]),
+        peer_config=PeerConfig(
+            port=settings["peer_port"],
+            torrents_dir=settings.get("torrents_dir", peer_defaults.torrents_dir),
+            data_dir=settings.get("data_dir", peer_defaults.data_dir),
+        ),
     )
 
     # Properly handle SIGTERM.

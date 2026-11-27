@@ -12,7 +12,8 @@ All messages have the following format:
 }
 ```
 
-Supported message types are: `HANDSHAKE`, `KEEP_ALIVE`, `PEX`, `REQUEST`, `PIECE`, and `CANCEL`.
+Supported message types are: `HANDSHAKE`, `KEEP_ALIVE`, `PEX`, `BITFIELD`,
+`HAVE`, `REQUEST`, `PIECE`, and `CANCEL`.
 """
 
 import base64
@@ -23,7 +24,52 @@ import typing as t
 from src import utils
 from src.models import peer
 
-VALID_PEER_MESSAGE_TYPES = ("HANDSHAKE", "KEEP_ALIVE", "PEX", "REQUEST", "PIECE", "CANCEL")
+VALID_PEER_MESSAGE_TYPES = (
+    "HANDSHAKE",
+    "KEEP_ALIVE",
+    "PEX",
+    "BITFIELD",
+    "HAVE",
+    "REQUEST",
+    "PIECE",
+    "CANCEL",
+)
+
+
+def get_bitfield_msg(pieces: int, piece_count: int):
+    if type(pieces) is not int or pieces < 0 or pieces.bit_length() > piece_count:
+        raise ValueError("Invalid local piece bitmap")
+
+    # When converting bitmap to JSON, for large torrent with 15k+ available pieces,
+    # Python will not convert it into string to transmit on JSON.
+    # https://docs.python.org/3.12/library/stdtypes.html#integer-string-conversion-length-limitation
+    # Therefore, we circumvent by sending base64 string instead.
+    data = pieces.to_bytes((piece_count + 7) // 8, "little")
+    block = _reverse_bitfield_bytes(data)
+    return {
+        "version": 1,
+        "type": "BITFIELD",
+        "pieces": base64.b64encode(block).decode("ascii"),
+    }
+
+def _reverse_bitfield_bytes(data: bytes):
+    """Reverse the bitfield bytes.
+
+    For example, from `0101` to `1010`.
+    """
+
+    result = bytearray()
+    for value in data:
+        reversed_value = 0
+        for _ in range(8):
+            reversed_value = (reversed_value << 1) | (value & 1)
+            value >>= 1
+        result.append(reversed_value)
+    return bytes(result)
+
+
+def get_have_msg(index: int):
+    return {"version": 1, "type": "HAVE", "index": index}
 
 
 def get_handshake_msg(swarm_id: int, peer_id: int, port: int) -> dict[str, t.Any]:
@@ -51,6 +97,7 @@ def get_pex_msg(added: list[peer.PeerInfo], dropped: list[peer.PeerInfo]):
         "dropped": [(info.ip, info.port) for info in dropped],
     }
 
+
 def get_request_msg(index: int, begin: int, length: int):
     return {
         "version": 1,
@@ -59,6 +106,7 @@ def get_request_msg(index: int, begin: int, length: int):
         "begin": begin,
         "length": length,
     }
+
 
 def get_piece_msg(index: int, begin: int, data: bytes):
     return {
@@ -69,6 +117,7 @@ def get_piece_msg(index: int, begin: int, data: bytes):
         "block": base64.b64encode(data).decode("ascii"),
     }
 
+
 def get_cancel_msg(index: int, begin: int, length: int):
     return {
         "version": 1,
@@ -77,6 +126,7 @@ def get_cancel_msg(index: int, begin: int, length: int):
         "begin": begin,
         "length": length,
     }
+
 
 def parse_peer_handshake(message: dict[str, t.Any]):
     """Parse a peer HANDSHAKE message to obtain IDs and port number.
@@ -106,6 +156,7 @@ def parse_peer_handshake(message: dict[str, t.Any]):
     port = int(message["port"])
     return swarm_id, peer_id, port
 
+
 def parse_pex(message: dict[str, t.Any], max_entries: int):
     """Return added and dropped endpoint sets."""
 
@@ -116,7 +167,10 @@ def parse_pex(message: dict[str, t.Any], max_entries: int):
     return added, dropped
 
 
-def _parse_pex_endpoints(entries: list[tuple[str, int]], max_entries: int) -> set[peer.PeerInfo]:
+def _parse_pex_endpoints(
+    entries: list[tuple[str, int]],
+    max_entries: int,
+) -> set[peer.PeerInfo]:
     if len(entries) > max_entries:
         entries = entries[:max_entries]
 
@@ -127,6 +181,49 @@ def _parse_pex_endpoints(entries: list[tuple[str, int]], max_entries: int) -> se
             raise ValueError("Duplicate PEX endpoint")
         endpoints.add(info)
     return endpoints
+
+def parse_bitfield(message: dict[str, t.Any], piece_count: int):
+    """Parse `BITFIELD` message for the bitmap and verify if it matches the piece count.
+
+    Raises
+    ------
+    ValueError
+        Invalid base64, an incorrect byte length, or out-of-range piece bits.
+    """
+
+    encoded = message.get("pieces")
+    if not isinstance(encoded, str):
+        raise ValueError("BITFIELD pieces must be a base64 string")
+
+    byte_count = (piece_count + 7) // 8
+    if len(encoded) != 4 * ((byte_count + 2) // 3):
+        raise ValueError("BITFIELD length does not match the piece count")
+    try:
+        data = base64.b64decode(encoded, validate=True)
+    except ValueError as error:
+        raise ValueError(f"Invalid base64 in BITFIELD: {error}") from None
+    if len(data) != byte_count:
+        raise ValueError("BITFIELD length does not match the piece count")
+    pieces = int.from_bytes(_reverse_bitfield_bytes(data), "little")
+    if pieces.bit_length() > piece_count:
+        raise ValueError("BITFIELD contains an out-of-range piece")
+    return pieces
+
+
+def parse_have(message: dict[str, t.Any], piece_count: int):
+    """Parse `HAVE` message for the advertised index and verify if it is valid.
+
+    Raises
+    ------
+    ValueError
+        The index is outside the piece count.
+    """
+
+    index = _non_negative_int(message, "index")
+    if index >= piece_count:
+        raise ValueError("HAVE index is outside the torrent")
+    return index
+
 
 def parse_block_request(message: dict[str, t.Any]):
 
@@ -142,6 +239,7 @@ def parse_block_request(message: dict[str, t.Any]):
 
     return index, begin, length
 
+
 def parse_piece(message: dict[str, t.Any]):
 
     if message["type"] != "PIECE":
@@ -151,12 +249,17 @@ def parse_piece(message: dict[str, t.Any]):
     begin = _non_negative_int(message, "begin")
     block = message.get("block")
     if not isinstance(block, str):
-        raise ValueError("PIECE block must be a base64 string") 
+        raise ValueError("PIECE block must be a base64 string")
+    if not block or len(block) > 4 * ((16384 + 2) // 3):
+        raise ValueError("PIECE block must contain between 1 and 16384 bytes")
 
     try:
         data = base64.b64decode(block, validate=True)
     except binascii.Error as error:
         raise ValueError(f"Invalid base64 in PIECE: {error}") from None
+
+    if not 0 < len(data) <= 16384:
+        raise ValueError("PIECE block must contain between 1 and 16384 bytes")
 
     return index, begin, data
 
@@ -168,6 +271,7 @@ def _non_negative_int(message: dict[str, t.Any], key: str):
         raise ValueError(f"'{key}' must be a non-negative int")
 
     return value
+
 
 def encode(message: dict):
     """Serialize a peer message as a UTF-8 JSON.

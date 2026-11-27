@@ -6,3 +6,6 @@ latex_files_Project_Proposal/out_dir
 
 __pycache__/
 /*.json
+tests/
+torrents/
+data/

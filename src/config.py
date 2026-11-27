@@ -1,4 +1,5 @@
 import dataclasses
+import pathlib
 
 
 @dataclasses.dataclass(frozen=True)
@@ -76,9 +77,40 @@ class PeerConfig:
     pex_max_entries: int = 50
     """Maximum endpoints in each added or dropped PEX list."""
 
+    torrents_dir: str | pathlib.Path = (
+        pathlib.Path(__file__).resolve().parents[1] / "torrents"
+    )
+    """Where to load and save .torrent metadata files by default."""
+
+    data_dir: str | pathlib.Path = pathlib.Path(__file__).resolve().parents[1] / "data"
+    """Where to look for torrent content by default."""
+
+    block_size: int = 16384
+    """Maximum block size within a piece. Default to 16 KiB."""
+
+    download_requests_per_peer: int = 8
+    """Maximum outstanding block requests on each connection."""
+
+    active_pieces: int = 8
+    """Maximum number of pieces buffered per swarm."""
+
+    pending_uploads_per_peer: int = 32
+    """Maximum pending block uploads on each connection."""
+
+    request_timeout: float = 15
+    """Seconds to wait for a requested block before disconnecting its peer."""
+
+    endgame_blocks: int = 32
+    """Maximum remaining blocks when endgame duplicate requests can begin."""
+
+    endgame_peers_per_block: int = 2
+    """Maximum peers asked for the same block during endgame."""
+
     def __post_init__(self):
         if type(self.port) is not int or not 1 <= self.port <= 65535:
             raise ValueError("Invalid TCP port")
+        if self.block_size > 16384:
+            raise ValueError("Block size cannot exceed 16 KiB")
         if self.heartbeat_interval >= self.receive_timeout:
             raise ValueError(
                 "Heartbeat interval shouldn't be larger than receive timeout."

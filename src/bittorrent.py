@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import pathlib
 import time
 import typing as t
 
@@ -7,6 +8,7 @@ from src import config, utils
 from src.dht import dhtnode
 from src.models import node, peer
 from src.swarm import client
+from src.torrent import metainfo
 
 LOGGER = logging.getLogger(__name__)
 
@@ -196,6 +198,69 @@ class BitTorrentNode:
                 self.__bind_ip,
             )
         )
+
+    async def register_torrent(
+        self,
+        torrent: metainfo.Torrent,
+        data_path: str | pathlib.Path | None = None,
+    ) -> int:
+        """Add an already loaded torrent.
+
+        Parameters
+        ----------
+        torrent : Torrent
+            The torrent object.
+        data_path : str | Path, optional
+            The path to the torrent's payload, default to `PeerConfig.data_dir/<torrent.name>`.
+
+        Returns
+        -------
+        int
+            The swarm ID/torrent infohash.
+        """
+
+        self.__require_running()
+        self.__require_swarm_not_leaving(torrent.swarm_id)
+        return await self.__spawn_task(
+            self.__swarm.register_torrent(torrent, data_path)
+        )
+
+    async def add_torrent(self, torrent_path: str | pathlib.Path) -> int:
+        """Add a torrent into the client.
+
+        This will load the metadata within the `.torrent` file.
+        It will then add the torrent into the client (via `register_torrent()`).
+
+        It will also make a copy of the file so it'll be added automatically next time.
+
+        Parameters
+        ----------
+        torrent_path : str | Path
+            The path to the `.torrent` file.
+
+        Returns
+        -------
+        int
+            The swarm ID/torrent infohash.
+        """
+
+        self.__require_running()
+        return await self.__spawn_task(self.__swarm.add_torrent(torrent_path))
+
+    def get_local_pieces(self, swarm_id: int):
+        """Return the bitmap representing piece availability for a swarm."""
+
+        self.__require_running()
+        return self.__swarm.get_local_pieces(swarm_id)
+
+    async def mark_piece_verified(self, swarm_id: int, index: int):
+        """Mark a piece within the bitmap as verified and announce this.
+        This will send HAVE messages to all active peer connections (within the swarm).
+        """
+
+        self.__require_running()
+        self.__require_swarm_not_leaving(swarm_id)
+        await self.__spawn_task(self.__swarm.mark_piece_verified(swarm_id, index))
 
     async def leave(self, swarm_id: int):
         """Quietly leave a swarm.
