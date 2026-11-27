@@ -11,11 +11,13 @@
   "advertise_ip": "public.reachable.ip.address",
   "port": 6881,
   "peer_port": 9000,
+  "torrents_dir": "/path/to/torrents",
+  "data_dir": "/path/to/data",
   "bootstrap": ["public.reachable.ip.address", 6881]
 }
 ```
 
-`bootstrap` is not required for the very first node.
+`bootstrap` is not required for the very first node. `torrents_dir` and `data_dir` by default points to `./torrents` and `./data` respectively.
 
 To run:
 

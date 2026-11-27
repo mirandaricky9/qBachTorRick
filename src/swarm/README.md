@@ -27,6 +27,10 @@ All messages have the following structures (see `src/swarm/peerutils.py` for acc
 
 See [Peer Messages](#peer-messages) for supported message types. Additional fields are required depending on `type`.
 
+## Piece Transfer
+
+Detecting available pieces is done via `BITFIELD` messages. From here, a peer can use `REQUEST` messages to ask for part of the piece (called "blocks"), to which a `PIECE` message will carry that requested data. When a piece is completed and verified against the piece hash locally, the peer will send `HAVE` to all connected peers on the swarm, indicating it has the piece.
+
 ## Peer Messages
 
 ### HANDSHAKE
@@ -87,14 +91,83 @@ Both `added` and `dropped` are required, but they can be empty list.
 
 Notify the receiver which pieces within the torrent it has.
 
+This message is automatically sent when both these conditions apply:
+
+1. A peer handshake has just completed.
+2. You have some pieces available for the torrent.
+
+A `BITFIELD` message is *never* sent after any other messages (aside from `HANDSHAKE`). If it is, there is something wrong and you should terminate the connection. If you don't have any pieces available, the `BITFIELD` message is skipped.
+
 Example message:
 
 ```json
 {
   "version": 1,
   "type": "BITFIELD",
-  "pieces": 2
+  "pieces": "QA=="
 }
 ```
 
-`pieces` is interpreted as a binary number, which indicate which piece it has.
+`pieces` is a base64-encoded string of the bitmap, with the highest bit is piece 0. The decoded length will be `ceil(piece_count / 8)`. Base64 is used because the bitmap may be very large in Python. For large integers, Python will not allow converting to string.
+
+### HAVE
+
+Announce to other peers in the swarm you have received and verified a piece against the torrent metadata.
+
+Example message:
+
+```json
+{
+  "version": 1,
+  "type": "HAVE",
+  "index": 2
+}
+```
+
+`index` indicates which piece you have received.
+
+### REQUEST and PIECE
+
+Request a block of data using its piece index, byte offset within that piece, and size. The expected response for a `REQUEST` is a `PIECE` message.
+
+Example request:
+
+```json
+{
+  "version": 1,
+  "type": "REQUEST",
+  "index": 0,
+  "begin": 0,
+  "length": 16384
+}
+```
+
+Example response:
+
+```json
+{
+  "version": 1,
+  "type": "PIECE",
+  "index": 0,
+  "begin": 0,
+  "block": "aGVsbG8="
+}
+```
+
+`block` is a base64-encoded byte of the requested size.
+
+### CANCEL
+
+Cancel a `REQUEST` message.
+
+Example message:
+
+```json
+{
+  "version": 1,
+  "type": "CANCEL",
+  "index": 0,
+  "begin": 0,
+  "length": 16384
+}
+```
