@@ -179,7 +179,7 @@ class PeerConnection:
         ):
             return
         await self.__send_message(
-            peerutils.get_bitfield_msg(self.__initial_local_pieces)
+            peerutils.get_bitfield_msg(self.__initial_local_pieces, self.__piece_count)
         )
         self.__is_bitfield_sent = True
 

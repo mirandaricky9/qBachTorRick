@@ -172,7 +172,6 @@ class TransferCoordinator:
         if self.__stopped:
             return
 
-        print("Received PIECE")
         requested_block = index, begin, len(data)
 
         owners = self.__requests.get(requested_block)

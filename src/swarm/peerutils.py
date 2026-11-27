@@ -36,8 +36,36 @@ VALID_PEER_MESSAGE_TYPES = (
 )
 
 
-def get_bitfield_msg(pieces: int):
-    return {"version": 1, "type": "BITFIELD", "pieces": pieces}
+def get_bitfield_msg(pieces: int, piece_count: int):
+    if type(pieces) is not int or pieces < 0 or pieces.bit_length() > piece_count:
+        raise ValueError("Invalid local piece bitmap")
+
+    # When converting bitmap to JSON, for large torrent with 15k+ available pieces,
+    # Python will not convert it into string to transmit on JSON.
+    # https://docs.python.org/3.12/library/stdtypes.html#integer-string-conversion-length-limitation
+    # Therefore, we circumvent by sending base64 string instead.
+    data = pieces.to_bytes((piece_count + 7) // 8, "little")
+    block = _reverse_bitfield_bytes(data)
+    return {
+        "version": 1,
+        "type": "BITFIELD",
+        "pieces": base64.b64encode(block).decode("ascii"),
+    }
+
+def _reverse_bitfield_bytes(data: bytes):
+    """Reverse the bitfield bytes.
+
+    For example, from `0101` to `1010`.
+    """
+
+    result = bytearray()
+    for value in data:
+        reversed_value = 0
+        for _ in range(8):
+            reversed_value = (reversed_value << 1) | (value & 1)
+            value >>= 1
+        result.append(reversed_value)
+    return bytes(result)
 
 
 def get_have_msg(index: int):
@@ -160,10 +188,23 @@ def parse_bitfield(message: dict[str, t.Any], piece_count: int):
     Raises
     ------
     ValueError
-        The bitmap is longer than the expected piece count.
+        Invalid base64, an incorrect byte length, or out-of-range piece bits.
     """
 
-    pieces = _non_negative_int(message, "pieces")
+    encoded = message.get("pieces")
+    if not isinstance(encoded, str):
+        raise ValueError("BITFIELD pieces must be a base64 string")
+
+    byte_count = (piece_count + 7) // 8
+    if len(encoded) != 4 * ((byte_count + 2) // 3):
+        raise ValueError("BITFIELD length does not match the piece count")
+    try:
+        data = base64.b64decode(encoded, validate=True)
+    except ValueError as error:
+        raise ValueError(f"Invalid base64 in BITFIELD: {error}") from None
+    if len(data) != byte_count:
+        raise ValueError("BITFIELD length does not match the piece count")
+    pieces = int.from_bytes(_reverse_bitfield_bytes(data), "little")
     if pieces.bit_length() > piece_count:
         raise ValueError("BITFIELD contains an out-of-range piece")
     return pieces
