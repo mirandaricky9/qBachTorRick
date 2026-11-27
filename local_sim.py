@@ -1,13 +1,17 @@
 # Interactive console for local DHT and peer operations.
 
 import asyncio
+import logging
+import pathlib
 import random
 import secrets
+import shlex
 
 from src import bittorrent, config, utils
 from src.models import peer
+from src.torrent import metainfo
 
-NODE_COUNT = 50
+NODE_COUNT = 5
 
 
 def get_node(nodes: list[bittorrent.BitTorrentNode], index: str):
@@ -94,6 +98,33 @@ async def handle_peer_cached_peers(nodes, args):
     print(node.swarm.get_cached_peers(utils.hex_to_id(args[1])))
 
 
+async def handle_create_torrent(nodes, args):
+    node = get_node(nodes, args[0])
+    content_path = pathlib.Path(args[1]).expanduser().resolve()
+    torrent = await asyncio.to_thread(metainfo.Torrent.from_path, content_path)
+    swarm_id = await node.register_torrent(torrent, data_path=content_path)
+    print(
+        f"Node {args[0]} created torrent {utils.id_to_hex(swarm_id)} "
+        f"with {len(torrent.info.pieces)} pieces"
+    )
+
+
+async def handle_add_torrent(nodes, args):
+    node = get_node(nodes, args[0])
+    swarm_id = await node.add_torrent(args[1])
+    print(f"Node {args[0]} added torrent {utils.id_to_hex(swarm_id)}")
+
+
+async def handle_list_torrent(nodes, args):
+    node = get_node(nodes, args[0])
+    torrents = node.swarm.get_torrents()
+    if not torrents:
+        print(f"Node {args[0]} has no torrents")
+        return
+    for torrent in torrents:
+        print(f"{utils.id_to_hex(torrent.swarm_id)} {torrent.info.name}")
+
+
 async def handle_quit(nodes, args):
     print("Stopping nodes and quitting...")
 
@@ -108,6 +139,13 @@ async def handle_gen_id(nodes, args):
 
 
 COMMANDS = {
+    "CREATE_TORRENT": (
+        handle_create_torrent,
+        "CREATE_TORRENT node_index torrent_content_path",
+        (2,),
+    ),
+    "ADD_TORRENT": (handle_add_torrent, "ADD_TORRENT node_index torrent_path", (2,)),
+    "LIST_TORRENT": (handle_list_torrent, "LIST_TORRENT node_index", (1,)),
     "DHT_JOIN": (handle_dht_join, "DHT_JOIN node_index [target_index]", (1, 2)),
     "DHT_ID": (handle_dht_id, "DHT_ID node_index", (1,)),
     "DHT_FIND_NODES": (
@@ -155,7 +193,11 @@ async def command_loop(nodes: list[bittorrent.BitTorrentNode]):
         except EOFError:
             return
 
-        parts = line.split()
+        try:
+            parts = shlex.split(line)
+        except ValueError as error:
+            print(f"Error: {error}")
+            continue
         if not parts:
             continue
 
@@ -188,7 +230,11 @@ async def main():
                 advertise_ip=f"127.0.0.{i + 1}",
                 bind_ip=f"127.0.0.{i + 1}",
                 config=config.DHTConfig(port=6000 + i),
-                peer_config=config.PeerConfig(port=8000 + i),
+                peer_config=config.PeerConfig(
+                    port=8000 + i,
+                    torrents_dir=f"./tests/torrent/node{i}",
+                    data_dir=f"./tests/data/node{i}",
+                ),
             )
             await node.start()
             nodes.append(node)
@@ -205,6 +251,9 @@ async def main():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO, format="%(levelname)s:%(name)s: %(message)s"
+    )
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
