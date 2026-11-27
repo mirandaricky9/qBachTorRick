@@ -99,7 +99,21 @@ class InfoDict:
             return self.piece_length
 
 
+# Piece length bounds. 256 KiB to 4 MiB depending on the file size
+_MIN_PIECE_LENGTH = 2**14  # 16 KiB
+_MAX_PIECE_LENGTH = 2**22  # 4 MiB
+_TARGET_PIECE_COUNT = 1000
 
+def _default_piece_length(total_length: int) -> int:
+    """Returns the smallest power of two length
+    that keeps the piece count relatively low"""
+
+    # start with the default minimum (16 KiB)
+    piece_length = _MIN_PIECE_LENGTH
+    while (piece_length < _MAX_PIECE_LENGTH and total_length > piece_length * _TARGET_PIECE_COUNT):
+        piece_length *= 2
+
+    return piece_length
 
 '''
 Torrent class:
@@ -166,12 +180,15 @@ class Torrent:
         else:
             raise FileNotFoundError(root)
 
-        # using a piece length of 16 KiB
-        if piece_length is None:
-            piece_length = 2**14
+        total_length = sum(e.length for e in entries)
 
-        if sum(e.length for e in entries) == 0:
+        if total_length == 0:
             raise ValueError("Cannot create a torrent with no data (0 bytes)")
+
+        if piece_length is None:
+            piece_length = _default_piece_length(total_length)
+        elif type(piece_length) is not int or piece_length <= 0:
+            raise ValueError("piece_length must be a positive int")
 
         # takes name, piece_length, and files from file_entry
         info_dict = InfoDict(name=name,piece_length=piece_length, pieces=_hash_pieces(files, piece_length), files=entries, single_file=single_file,private=private)
