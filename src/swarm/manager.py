@@ -7,8 +7,8 @@ import typing as t
 from src import config
 from src.models import peer
 from src.network import transport
-from src.swarm import connection, peerutils
-from src.torrent import availability
+from src.swarm import connection, peerutils, transfer
+from src.torrent import availability, store
 
 LOGGER = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class SwarmManager:
         swarm_id: int,
         peer_config: config.PeerConfig,
         clock: t.Callable[[], float],
-        state: availability.TorrentAvailability | None = None,
+        record: store.TorrentRecord | None = None,
     ):
         self.__swarm_id = swarm_id
         self.__config = peer_config
@@ -30,12 +30,23 @@ class SwarmManager:
         # magnet link which gives the infohash for DHT lookup.
         # BEP 9 is then used to obtain the metadata from peers.
         # ...But that's out of scope for now :)
-        self.__state = state
+        self.__state = record.availability if record is not None else None
         self.__connections: set[connection.PeerConnection] = set()
         # Only contain peers discovered via DHT.
         # Peers discovered via PEX is managed by PeerConnection.
         self.__peers: list[peer.PeerInfo] = []
         self.__is_closed = False
+        self.__transferer = (
+            transfer.TransferCoordinator(
+                record,
+                peer_config,
+                clock,
+                self.get_connections,
+                self.mark_piece_verified,
+            )
+            if record is not None
+            else None
+        )
 
     @property
     def swarm_id(self) -> int:
@@ -57,14 +68,24 @@ class SwarmManager:
             endpoint,
             self.__config,
             self.__clock,
-            self.__connections.discard,
+            self.__connection_closed,
             self.get_connections,
             piece_count=state.piece_count if state is not None else None,
             initial_local_pieces=state.bitmap if state is not None else 0,
+            transferer=self.__transferer,
         )
         self.__connections.add(conn)
         conn.start()
+        if self.__transferer is not None:
+            self.__transferer.start()
+            # If there are later connections, we need to update the transferer.
+            self.__transferer.changed()
         return conn
+
+    def __connection_closed(self, conn):
+        self.__connections.discard(conn)
+        if self.__transferer is not None:
+            self.__transferer.disconnect_from(conn)
 
     def get_connections(self):
         """Return active connections in this swarm."""
@@ -118,6 +139,8 @@ class SwarmManager:
             return
 
         self.__state.bitmap |= 1 << index
+        if self.__transferer is not None:
+            self.__transferer.changed()
         await asyncio.gather(
             *(self.__send_have(conn, message) for conn in self.get_connections())
         )
@@ -126,7 +149,12 @@ class SwarmManager:
         """Close every owned connection and stop accepting new ones."""
 
         self.__is_closed = True
-        closing = asyncio.gather(*(conn.close() for conn in list(self.__connections)))
+        if self.__transferer is not None:
+            self.__transferer.stop()
+        operations = [conn.close() for conn in list(self.__connections)]
+        if self.__transferer is not None:
+            operations.append(self.__transferer.close())
+        closing = asyncio.gather(*operations)
         try:
             await asyncio.shield(closing)
         except asyncio.CancelledError:

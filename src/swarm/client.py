@@ -623,7 +623,7 @@ class SwarmClient:
             swarm_id,
             self.__config,
             self.__clock,
-            record.availability if record is not None else None,
+            record=record,
         )
         # Transfer peers for the swarm to the manager.
         swarm.update_peers(self.__peers.pop(swarm_id, []))

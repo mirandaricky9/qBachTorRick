@@ -47,24 +47,7 @@ def scan_pieces(info: metainfo.InfoDict, data_path: str | pathlib.Path) -> int:
     ):
         raise ValueError("Piece hashes do not match the declared torrent size")
 
-    root = pathlib.Path(data_path).expanduser().resolve()
-    paths: list[pathlib.Path] = []
-    if info.single_file:
-        paths.append(root)
-    else:
-        for file_entry in info.files:
-            if not file_entry.path or any(
-                part in ("", ".", "..")
-                or pathlib.Path(part).is_absolute()
-                or len(pathlib.Path(part).parts) != 1
-                for part in file_entry.path
-            ):
-                raise ValueError("Unsafe torrent file path")
-
-            path = root.joinpath(*file_entry.path).resolve()
-            if not path.is_relative_to(root):
-                raise ValueError("Torrent file path escapes the data directory")
-            paths.append(path)
+    paths = get_data_paths(info, data_path)
 
     bitmap = 0
     # What piece number we're on.
@@ -126,3 +109,36 @@ def scan_pieces(info: metainfo.InfoDict, data_path: str | pathlib.Path) -> int:
     ):
         bitmap |= 1 << piece_index
     return bitmap
+
+
+def get_data_paths(info: metainfo.InfoDict, data_path: str | pathlib.Path):
+    """Return a list of paths leading to the torrent's content.
+
+    Parameters
+    ----------
+    info : InfoDict
+        The torrent info to identify file names.
+    data_path : str | Path
+        The path to a file (for single file torrent) or to a directory (for multi-file torrent).
+    """
+
+    root = pathlib.Path(data_path).expanduser().resolve()
+    paths: list[pathlib.Path] = []
+    if info.single_file:
+        paths.append(root)
+    else:
+        for file_entry in info.files:
+            if not file_entry.path or any(
+                part in ("", ".", "..")
+                or pathlib.Path(part).is_absolute()
+                or len(pathlib.Path(part).parts) != 1
+                for part in file_entry.path
+            ):
+                raise ValueError("Unsafe torrent file path")
+
+            path = root.joinpath(*file_entry.path).resolve()
+            if not path.is_relative_to(root):
+                raise ValueError("Torrent file path escapes the data directory")
+            paths.append(path)
+
+    return paths

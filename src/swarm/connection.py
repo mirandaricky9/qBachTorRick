@@ -5,7 +5,8 @@ import typing as t
 from src import config
 from src.models import peer
 from src.network import transport
-from src.swarm import peerutils, pex
+from src.swarm import peerutils, pex, transfer
+from src.torrent import diskio
 
 LOGGER = logging.getLogger(__name__)
 
@@ -32,6 +33,7 @@ class PeerConnection:
         get_connections: t.Callable[[], list["PeerConnection"]],
         piece_count: int | None = None,
         initial_local_pieces: int = 0,
+        transferer: transfer.TransferCoordinator | None = None,
     ):
         """Construct a peer connection given an existing TCP connection.
 
@@ -62,6 +64,8 @@ class PeerConnection:
         initial_local_pieces : int
             The local bitmap when this connection is created.
             This is used for `BITFIELD` message.
+        transferer : TransferCoordinator, optional
+            The owning swarm's block-transfer coordinator.
         """
 
         self.__transport = channel
@@ -77,6 +81,10 @@ class PeerConnection:
         # This is gonna change later but for now keep it like this.
         self.__initial_local_pieces = initial_local_pieces
         self.__remote_pieces = 0 if piece_count is not None else None
+
+        self.__transferer = transferer
+        # Track which block we're uploading.
+        self.__uploads: dict[tuple[int, int, int], asyncio.Task[None]] = {}
 
         # Slightly misleading name, but otherwise the name would be long.
         # Did we attempt to send a BITFIELD.
@@ -95,6 +103,10 @@ class PeerConnection:
         # We don't have any pieces, so we're not going to send bitfield.
         if self.__initial_local_pieces == 0:
             self.__is_bitfield_sent = True
+
+    @property
+    def remote_pieces(self):
+        return self.__remote_pieces
 
     @property
     def swarm_id(self) -> int:
@@ -190,6 +202,8 @@ class PeerConnection:
 
         was_closed = self.__is_closed
         self.__is_closed = True
+        if self.__transferer is not None:
+            self.__transferer.disconnect_from(self)
         await self.__pex_manager.stop()
 
         # We have not started all the fancy monitoring.
@@ -235,10 +249,19 @@ class PeerConnection:
             LOGGER.debug("Peer connection closed: %s", error)
         finally:
             self.__is_closed = True
+            if self.__transferer is not None:
+                self.__transferer.disconnect_from(self)
 
             for task in workers:
                 task.cancel()
             await asyncio.gather(*workers, return_exceptions=True)
+
+            uploads = list(self.__uploads.values())
+            for task in uploads:
+                task.cancel()
+            await asyncio.gather(*uploads, return_exceptions=True)
+
+            self.__uploads.clear()
             await self.__pex_manager.stop()
             await self.__transport_close()
 
@@ -258,11 +281,56 @@ class PeerConnection:
                     self._handle_bitfield_msg(message, is_first_message)
                 case "HAVE":
                     self._handle_have_msg(message)
+                case "REQUEST" | "CANCEL":
+                    self._handle_block_request(message)
+                case "PIECE":
+                    self._handle_piece_msg(message)
                 case _:
-                    return
+                    raise ValueError("Unexpected peer message")
 
             is_first_message = False
             self.__last_received = self.__clock()
+
+    def _handle_block_request(self, message):
+        if self.__transferer is None:
+            raise ValueError("Block requests require registered torrent metadata")
+
+        block = peerutils.parse_block_request(message)
+        self.__transferer.io.validate_block(*block)
+        task = self.__uploads.get(block)
+
+        if message["type"] == "CANCEL":
+            if task is not None:
+                task.cancel()
+            return
+
+        if self.__transferer.is_stopped or task is not None:
+            return
+        if not self.__transferer.has_piece(block[0]):
+            return
+        if len(self.__uploads) >= self.__config.pending_uploads_per_peer:
+            raise ValueError("Too many pending uploads")
+
+        task = asyncio.create_task(self.__upload(block))
+        self.__uploads[block] = task
+        task.add_done_callback(lambda done: self.__uploads.pop(block, None))
+
+    async def __upload(self, block: tuple[int, int, int]):
+        assert self.__transferer is not None
+        
+        try:
+            data = await diskio.run_io(self.__transferer.io.read_block, *block)
+        except (OSError, ValueError) as error:
+            self.__transferer.fail(error)
+            return
+        if self.__transferer.is_stopped or not self.is_connected:
+            return
+        try:
+            await self.send(peerutils.get_piece_msg(block[0], block[1], data))
+        except (OSError, EOFError, ValueError, TimeoutError):
+            # Can't use await self.close() because within run(),
+            # it perform cleanup and wait for upload() (which is us) to finish.
+            self.__maintenance_task.cancel()
 
     async def __heartbeat_loop(self):
         """Perform heartbeating in the background."""
@@ -278,6 +346,8 @@ class PeerConnection:
 
         while True:
             await asyncio.sleep(self.__config.maintenance_interval)
+            if self.__transferer is not None and self.__transferer.is_request_expired(self):
+                raise TimeoutError("Block request timeout")
             if self.__clock() - self.__last_received >= self.__config.receive_timeout:
                 raise TimeoutError("Peer timeout")
 
@@ -287,11 +357,24 @@ class PeerConnection:
             raise ValueError("BITFIELD requires registered torrent metadata")
         if not is_first_msg:
             raise ValueError("BITFIELD must be the first peer message")
+
+        print("Received BITFIELD")
         self.__remote_pieces = peerutils.parse_bitfield(message, self.__piece_count)
+        if self.__transferer is not None:
+            self.__transferer.changed()
 
     def _handle_have_msg(self, message: dict[str, t.Any]):
         if self.__piece_count is None:
             raise ValueError("HAVE requires registered torrent metadata")
         index = peerutils.parse_have(message, self.__piece_count)
+
         assert self.__remote_pieces is not None
         self.__remote_pieces |= 1 << index
+        if self.__transferer is not None:
+            self.__transferer.changed()
+
+    def _handle_piece_msg(self, message: dict[str, t.Any]):
+        if self.__transferer is None:
+            raise ValueError("PIECE requires registered torrent metadata")
+        index, begin, data = peerutils.parse_piece(message)
+        self.__transferer.on_receive_piece(self, index, begin, data)

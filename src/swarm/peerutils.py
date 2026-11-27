@@ -209,11 +209,16 @@ def parse_piece(message: dict[str, t.Any]):
     block = message.get("block")
     if not isinstance(block, str):
         raise ValueError("PIECE block must be a base64 string")
+    if not block or len(block) > 4 * ((16384 + 2) // 3):
+        raise ValueError("PIECE block must contain between 1 and 16384 bytes")
 
     try:
         data = base64.b64decode(block, validate=True)
     except binascii.Error as error:
         raise ValueError(f"Invalid base64 in PIECE: {error}") from None
+
+    if not 0 < len(data) <= 16384:
+        raise ValueError("PIECE block must contain between 1 and 16384 bytes")
 
     return index, begin, data
 
